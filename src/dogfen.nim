@@ -4,7 +4,7 @@ import std/strformat
 import ./[unocss, markedjs]
 
 const sourceURL = when defined(release): "https://unpkg.dev/dogfen" else: "index.js"
-const oneLiner = fmt"""<!DOCTYPE html><html><style>[un-cloak]{{display:none;}}</style><body un-cloak><script src="{sourceUrl}"></script><textarea>"""
+const oneLiner = fmt"""<!DOCTYPE html><html><body><script src="{sourceUrl}"></script><textarea style="display:none;">"""
 
 proc addToHead(el: Element) =
   document.getElementsByTagName("head")[0].appendChild(el)

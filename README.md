@@ -1,17 +1,23 @@
-# notes
 
-To install dependencies:
 
-```bash
-bun install
+# dogfen
+
+## usage
+
+Add the below oneliner to an existing markdown document:
+
+```html
+<!DOCTYPE html><html><body><script src="https://unpkg.dev/dogfen"></script><textarea style="display:none;">
+
+# Header 1
+
+## Header 2
+
+|col 1 | col 2 |
+|---|---|
+|cell 1 | cell 2 |
 ```
 
-To run:
+## related projects
 
-```bash
-bun run index.js
-```
-
-This project was created using `bun init` in bun v1.2.7. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
-
-
+- [texme](https://github.com/susam/texme)
