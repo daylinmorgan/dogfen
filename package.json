@@ -14,9 +14,7 @@
     "bundle:prod": "esbuild src/dogfen.js --minify --bundle --outfile=index.js"
   },
   "devDependencies": {
-    "esbuild": "^0.25.2"
-  },
-  "dependencies": {
+    "esbuild": "^0.25.2",
     "@unocss/preset-typography": "^66.1.0-beta.10",
     "@unocss/preset-wind3": "^66.1.0-beta.10",
     "@unocss/runtime": "^66.1.0-beta.10",
