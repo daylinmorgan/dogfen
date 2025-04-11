@@ -28,11 +28,6 @@ proc addStylesheetByHref(href: string) =
   addToHead style
 
 
-addStylesheet("[un-cloak]{display: none;}")
-
-addStylesheetByHref("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css")
-setViewPort()
-
 proc createObjectURL(URL: JsObject, blob: JsObject): cstring {.importjs: "#.createObjectURL(#)"}
 
 proc onInputChange() =
@@ -69,7 +64,7 @@ proc setupHeader(): Element =
   header.appendChild(saveBtn)
   result = header
 
-proc setupDocument() =
+proc setupDocument =
   document.body.className = "min-h-85vh flex flex-col"
   document.body.setAttr("un-cloak", "")
 
@@ -96,8 +91,13 @@ proc setupDocument() =
   document.body.appendChild(header)
   document.body.appendChild(container)
   initUnocssRuntime(
-  RuntimeOptions{defaults: UnocssConfig{presets: @[presetWind3(), presetTypography()]}}
+    RuntimeOptions{
+      defaults: UnocssConfig{
+          presets: @[presetWind3(), presetTypography()]
+        }
+    }
   )
+
 proc domReady(_: Event) =
   setupDocument()
   let inputbox = document.getElementbyId("inputbox")
@@ -109,6 +109,12 @@ proc domReady(_: Event) =
       onInputChange(),
   )
 
-document.addEventListener("DOMContentLoaded", domReady)
+proc main =
+  addStylesheet("[un-cloak]{display: none;}")
+  addStylesheetByHref("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css")
+  setViewPort()
 
-echo "doc powered by dogfen: https://github.com/daylinmorgan/dogfen"
+  echo "doc powered by dogfen: https://github.com/daylinmorgan/dogfen"
+  document.addEventListener("DOMContentLoaded", domReady)
+
+main()
