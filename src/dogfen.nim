@@ -4,6 +4,7 @@ import ./[unocss, markedjs, icons]
 
 const sourceURL = when defined(release): "https://unpkg.dev/dogfen" else: "index.js"
 const oneLiner = fmt"""<!DOCTYPE html><html><body><script src="{sourceUrl}"></script><textarea style="display:none;">"""
+const buttonClass = "text-black bg-blue p-2 rounded h-5 flex items-center"
 
 proc addToHead(el: Element) =
   document.getElementsByTagName("head")[0].appendChild(el)
@@ -44,10 +45,9 @@ proc onInputChange() =
 
   # TODO: no emit
   {.emit:"""const blob = new Blob([html], { type: "text/html" });""" .}
-
   let blob {.importc.}: JsObject
-  let URL {.importc.}: JsObject
 
+  let URL {.importc.}: JsObject
   let blobUrl: cstring = URL.createObjectURL(blob)
   saveBtn.setAttr("href", blobUrl)
 
@@ -56,7 +56,7 @@ proc newSaveBtn: Element =
   result.setAttr("id", "save-btn")
   result.setAttr("download", "dogfen.html")
   result.innerHtml = saveIcon
-  result.className = "bg-blue px-5 py-2 rounded"
+  result.className = buttonClass
 
 proc toggleInputBox(_: Event) =
   let inputbox = document.getElementbyId("inputbox")
@@ -66,20 +66,17 @@ proc newEditBtn: Element =
   result = document.createElement("div")
   result.setAttr("id", "edit-btn")
   result.innerHtml = editIcon
-  result.className = "bg-blue px-5 py-2 rounded"
-
-  result.addEventListener(
-    "click",
-    toggleInputBox
-  )
+  result.className = buttonClass
+  result.addEventListener("click", toggleInputBox)
 
 proc setupHeader(): Element =
   let header = document.createElement("div")
-  header.className = "flex flex-row mx-15 items-center gap-5"
+  header.className = "flex flex-row mx-15 items-center gap-5 text-md"
 
-  # TODO: replace with a cooler logo/header   
+  # TODO: replace with a cooler logo/header
   let h1 = document.createElement("h1")
   h1.innerHTML = "Dogfen"
+  h1.className = "text-sm"
 
   let saveBtn = newSaveBtn()
   let editBtn = newEditBtn()
@@ -105,7 +102,7 @@ proc setupDocument =
   let preview = document.createElement("div")
   preview.setAttr("id", "preview")
 
-  textarea.className = "w-1/3 p-4 border-dashed rounded"
+  textarea.className = "w-1/3 p-4 border-dashed rounded hidden"
   preview.className =
     "min-w-1/2 p-4 border border-2 border-red prose border-solid rounded bg-white"
 
@@ -124,7 +121,7 @@ proc setupDocument =
     }
   )
 
-proc renderDoc = 
+proc renderDoc =
 
   let inputbox = document.getElementbyId("inputbox")
   let preview = document.getElementbyId("preview")
@@ -148,11 +145,9 @@ proc renderDoc =
 
 proc domReady(_: Event) =
   setupDocument()
-  # let preview = document.getElementbyId("preview")
-  # preview.innerHtml = marked.parse(inputbox.value)
-  
-  renderDoc() 
+  renderDoc()
 
+  # should this just be in setupDocument?
   let inputbox = document.getElementbyId("inputbox")
   inputbox.addEventListener(
     "input",
