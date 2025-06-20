@@ -1,4 +1,4 @@
-import std/[jsffi, dom]
+import std/[jsffi, dom, sugar]
 import std/strformat
 import ./[unocss, markedjs, icons]
 
@@ -26,28 +26,6 @@ proc addStylesheetByHref(href: string) =
   style.setAttribute("type", "text/css")
   style.setAttribute("href", href)
   addToHead style
-
-proc createObjectURL(
-  URL: JsObject, blob: JsObject
-): cstring {.importjs: "#.createObjectURL(#)".}
-
-proc onInputChange() =
-  let inputbox = document.getElementbyId("inputbox")
-  let preview = document.getElementbyId("preview")
-
-  preview.innerHtml = marked.parse(inputbox.value)
-
-  let saveBtn = document.getElementbyId("save-btn")
-
-  let html {.exportc.}: cstring = oneLiner & "\n" & inputbox.value
-
-  # TODO: no emit
-  {.emit: """const blob = new Blob([html], { type: "text/html" });""".}
-  let blob {.importc.}: JsObject
-
-  let URL {.importc.}: JsObject
-  let blobUrl: cstring = URL.createObjectURL(blob)
-  saveBtn.setAttr("href", blobUrl)
 
 proc newSaveBtn: Element =
   result = document.createElement("a")
@@ -85,6 +63,22 @@ proc setupHeader(): Element =
 
   result = header
 
+proc renderDoc =
+  let inputbox = document.getElementbyId("inputbox")
+  let preview = document.getElementbyId("preview")
+  preview.innerHtml = marked.parse(inputbox.value)
+
+  let saveBtn = document.getElementbyId("save-btn")
+
+  proc blobHtml(str: cstring): Blob {.importjs: "new Blob([#], {type: 'text/html'})".}# h, constructor.}
+  proc createUrl(blob: Blob): cstring {.importc: "window.URL.createObjectURL".}
+
+  let html = oneLiner & "\n" & inputbox.value
+  let url = createUrl(blobHtml(html))
+
+  saveBtn.setAttr("href", url)
+
+
 proc setupDocument =
   document.body.className = "min-h-85vh flex flex-col"
   document.body.setAttr("un-cloak", "")
@@ -111,34 +105,14 @@ proc setupDocument =
   let header = setupHeader()
   document.body.appendChild(header)
   document.body.appendChild(container)
-
-proc renderDoc =
-  let inputbox = document.getElementbyId("inputbox")
-  let preview = document.getElementbyId("preview")
-  preview.innerHtml = marked.parse(inputbox.value)
-
-  let saveBtn = document.getElementbyId("save-btn")
-
-  # https://github.com/metagn/margrave/blob/316c35f918403750415f5b679d95619de51a954b/browser/converter.nim#L34-L35
-  # note the use of constructor here originally... I don't know that it is needed and might be a noop for the js backend
-  proc blobHtml(str: cstring): Blob {.importjs: "new Blob([#], {type: 'text/html'})".}# h, constructor.}
-  proc createUrl(blob: Blob): cstring {.importc: "window.URL.createObjectURL".}
-
-  let html = oneLiner & "\n" & inputbox.value
-  let url = createUrl(blobHtml(html))
-  saveBtn.setAttr("href", url)
+  textarea.addEventListener("input", (_: Event) => renderDoc())
+  
+  # intial render
+  renderDoc()
 
 proc domReady(_: Event) =
   setupDocument()
-  renderDoc()
 
-  # should this just be in setupDocument?
-  let inputbox = document.getElementbyId("inputbox")
-  inputbox.addEventListener(
-    "input",
-    proc(_: Event) =
-      onInputChange(),
-  )
 
 proc main =
   addStylesheet "[un-cloak]{display: none;}"
