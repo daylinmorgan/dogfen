@@ -1,5 +1,4 @@
-import std/jsffi
-import std/dom
+import std/[jsffi, dom]
 import std/strformat
 import ./[unocss, markedjs, icons]
 
@@ -33,6 +32,7 @@ proc createObjectURL(
 ): cstring {.importjs: "#.createObjectURL(#)"}
 
 proc onInputChange() =
+
   let inputbox = document.getElementbyId("inputbox")
   let preview = document.getElementbyId("preview")
 
@@ -51,21 +51,43 @@ proc onInputChange() =
   let blobUrl: cstring = URL.createObjectURL(blob)
   saveBtn.setAttr("href", blobUrl)
 
+proc newSaveBtn: Element =
+  result = document.createElement("a")
+  result.setAttr("id", "save-btn")
+  result.setAttr("download", "dogfen.html")
+  result.innerHtml = saveIcon
+  result.className = "bg-blue px-5 py-2 rounded"
+
+proc toggleInputBox(_: Event) =
+  let inputbox = document.getElementbyId("inputbox")
+  inputbox.classList.toggle("hidden")
+
+proc newEditBtn: Element =
+  result = document.createElement("div")
+  result.setAttr("id", "edit-btn")
+  result.innerHtml = editIcon
+  result.className = "bg-blue px-5 py-2 rounded"
+
+  result.addEventListener(
+    "click",
+    toggleInputBox
+  )
+
 proc setupHeader(): Element =
   let header = document.createElement("div")
   header.className = "flex flex-row mx-15 items-center gap-5"
 
+  # TODO: replace with a cooler logo/header   
   let h1 = document.createElement("h1")
   h1.innerHTML = "Dogfen"
 
-  let saveBtn = document.createElement("a")
-  saveBtn.setAttr("id", "save-btn")
-  saveBtn.setAttr("download", "dogfen.html")
-  # saveBtn.innerHtml = "save"
-  saveBtn.innerHtml = saveIcon
-  savebtn.className = "bg-blue px-5 py-2 rounded"
+  let saveBtn = newSaveBtn()
+  let editBtn = newEditBtn()
+
   header.appendChild(h1)
   header.appendChild(saveBtn)
+  header.appendChild(editBtn)
+
   result = header
 
 proc setupDocument =
@@ -102,11 +124,36 @@ proc setupDocument =
     }
   )
 
-proc domReady(_: Event) =
-  setupDocument()
+proc renderDoc = 
+
   let inputbox = document.getElementbyId("inputbox")
   let preview = document.getElementbyId("preview")
+
   preview.innerHtml = marked.parse(inputbox.value)
+
+  let saveBtn = document.getElementbyId("save-btn")
+
+  let  html {.exportc.}: cstring = oneLiner & "\n" & inputbox.value
+
+  # TODO: no emit
+  {.emit:"""const blob = new Blob([html], { type: "text/html" });""" .}
+
+  let blob {.importc.}: JsObject
+  let URL {.importc.}: JsObject
+
+  let blobUrl: cstring = URL.createObjectURL(blob)
+  saveBtn.setAttr("href", blobUrl)
+
+
+
+proc domReady(_: Event) =
+  setupDocument()
+  # let preview = document.getElementbyId("preview")
+  # preview.innerHtml = marked.parse(inputbox.value)
+  
+  renderDoc() 
+
+  let inputbox = document.getElementbyId("inputbox")
   inputbox.addEventListener(
     "input",
     proc(_: Event) =
@@ -114,8 +161,9 @@ proc domReady(_: Event) =
   )
 
 proc main =
-  addStylesheet("[un-cloak]{display: none;}")
-  addStylesheetByHref("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css")
+  addStylesheet "[un-cloak]{display: none;}"
+  addStylesheetByHref "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css"
+  addStylesheetByHref "https://unpkg.com/@unocssreset@0.62.3/normalize.css"
   setViewPort()
 
   echo "doc powered by dogfen: https://github.com/daylinmorgan/dogfen"
