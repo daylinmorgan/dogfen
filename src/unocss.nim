@@ -3,10 +3,13 @@ import std/jsffi
 type
   UnocssConfig* = ref object
     presets*: seq[JsObject]
+
   RuntimeOptions* = ref object
     defaults*: UnocssConfig
 
-{.emit: """
+{.
+  emit:
+    """
 const initUnocssRuntime = require("@unocss/runtime").default;
 const presetWind3 = require("@unocss/preset-wind3").default;
 const presetTypography = require("@unocss/preset-typography").default;
@@ -17,3 +20,9 @@ proc initUnocssRuntime*(options: RuntimeOptions) {.importc.}
 proc presetWind3*(): JsObject {.importc.}
 proc presetTypography*(): JsObject {.importc.}
 
+proc initUnocss* =
+  initUnocssRuntime(
+    RuntimeOptions{
+      defaults: UnocssConfig{presets: @[presetWind3(), presetTypography()]}
+    }
+  )

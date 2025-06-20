@@ -113,13 +113,6 @@ proc setupDocument =
   let header = setupHeader()
   document.body.appendChild(header)
   document.body.appendChild(container)
-  initUnocssRuntime(
-    RuntimeOptions{
-      defaults: UnocssConfig{
-          presets: @[presetWind3(), presetTypography()]
-        }
-    }
-  )
 
 proc renderDoc =
 
@@ -159,6 +152,7 @@ proc main =
   addStylesheet "[un-cloak]{display: none;}"
   addStylesheetByHref "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css"
   addStylesheetByHref "https://unpkg.com/@unocssreset@0.62.3/normalize.css"
+  initUnocss()
   setViewPort()
 
   echo "doc powered by dogfen: https://github.com/daylinmorgan/dogfen"
