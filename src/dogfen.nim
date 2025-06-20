@@ -1,7 +1,7 @@
 import std/jsffi
 import std/dom
 import std/strformat
-import ./[unocss, markedjs]
+import ./[unocss, markedjs, icons]
 
 const sourceURL = when defined(release): "https://unpkg.dev/dogfen" else: "index.js"
 const oneLiner = fmt"""<!DOCTYPE html><html><body><script src="{sourceUrl}"></script><textarea style="display:none;">"""
@@ -27,8 +27,10 @@ proc addStylesheetByHref(href: string) =
   style.setAttribute("href", href)
   addToHead style
 
-
-proc createObjectURL(URL: JsObject, blob: JsObject): cstring {.importjs: "#.createObjectURL(#)"}
+proc createObjectURL(
+  URL: JsObject,
+  blob: JsObject
+): cstring {.importjs: "#.createObjectURL(#)"}
 
 proc onInputChange() =
   let inputbox = document.getElementbyId("inputbox")
@@ -39,6 +41,7 @@ proc onInputChange() =
   let saveBtn = document.getElementbyId("save-btn")
 
   let  html {.exportc.}: cstring = oneLiner & "\n" & inputbox.value
+
   # TODO: no emit
   {.emit:"""const blob = new Blob([html], { type: "text/html" });""" .}
 
@@ -58,7 +61,8 @@ proc setupHeader(): Element =
   let saveBtn = document.createElement("a")
   saveBtn.setAttr("id", "save-btn")
   saveBtn.setAttr("download", "dogfen.html")
-  saveBtn.innerHtml = "save"
+  # saveBtn.innerHtml = "save"
+  saveBtn.innerHtml = saveIcon
   savebtn.className = "bg-blue px-5 py-2 rounded"
   header.appendChild(h1)
   header.appendChild(saveBtn)
