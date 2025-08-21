@@ -1,43 +1,64 @@
 <!DOCTYPE html><html><body><script src="https://unpkg.dev/dogfen"></script><textarea style="display:none;">
-
 # Try CommonMark
 
 You can try CommonMark here.  This dingus is powered by
 [commonmark.js](https://github.com/commonmark/commonmark.js), the
 JavaScript reference implementation.
 
+### Lists
+
 1. item one
 2. item two
    - sublist
    - sublist
 
-| foo | bar |
-| --- | --- |
-| baz | bim |
+### Tables
 
-```go
-package main
+| foo | bar | baz |
+| --- | --- | --- |
+| baz | bim | boo |
+| boo | bim | baz |
 
-import "fmt"
+### Code
 
-func main() {
-    ch := make(chan float64)
-    ch <- 1.0e10    // magic number
-    x, ok := <- ch
-    defer fmt.Println(`exitting now\`)
-    go println(len("hello world!"))
-    return
-}
+```nim
+import std/strformat
+
+type
+  Person = object
+    name: string
+    age: Natural # Ensures the age is positive
+
+let people = [
+  Person(name: "John", age: 45),
+  Person(name: "Kate", age: 30)
+]
+
+for person in people:
+  # Type-safe string interpolation,
+  # evaluated at compile time.
+  echo(fmt"{person.name} is {person.age} years old")
+
+# Use Nim's macro system to transform a dense
+# data-centric description of x86 instructions
+# into lookup tables that are used by
+# assemblers and JITs.
+import macros, strutils
+
+macro toLookupTable(data: static[string]): untyped =
+  result = newTree(nnkBracket)
+  for w in data.split(';'):
+    result.add newLit(w)
+
+const
+  data = "mov;btc;cli;xor"
+  opcodes = toLookupTable(data)
+
+for o in opcodes:
+  echo o
+
 ```
 
-## todo
+### Images
 
-- [ ] test extracting table of contents
-- [ ] test code highlighting
-- [ ] switch index.js to nim
-- [ ] generate index.js as bundled script including unocss and marked
-- [ ] test typography preset again
-
---- 
-
-below hr
+![picsum photo](https://picsum.photos/300/200)

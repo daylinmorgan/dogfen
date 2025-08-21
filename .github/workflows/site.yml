@@ -12,10 +12,13 @@ jobs:
     steps:
     - uses: actions/checkout@v5
 
+    - name: build index.html
+      run:
+        echo '<!DOCTYPE html><html><body><script src="https://unpkg.dev/dogfen"></script><textarea style="display:none;"' > site/index.html
+        cat README.md >> site/index.html
+
     - name: Upload artifacts
-      # https://github.com/actions/upload-pages-artifact/issues/128
-      # no v4
-      uses: actions/upload-pages-artifact@v4.0.0
+      uses: actions/upload-pages-artifact@v4
       with:
         path: ./site
 

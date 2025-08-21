@@ -16,6 +16,8 @@ Add the below oneliner to an existing markdown document:
 |cell 1 | cell 2 |
 ```
 
+see [demo](https://gh.dayl.in/dogfen/demo.html)
+
 ## converter
 
 You could define a shell helper function to quickly convert a markdown doc to a dogfen doc.
@@ -35,3 +37,4 @@ md2dogfen README.md > README.dogfen.html
 ## related projects
 
 - [texme](https://github.com/susam/texme)
+- [zeromd](https://github.com/zerodevx/zero-md)

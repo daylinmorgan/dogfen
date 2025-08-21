@@ -4,7 +4,7 @@ task watch, "watch src and run build":
 task build, "build app":
   when not defined(release):
     selfExec "js src/dogfen.nim"
-    exec "bun run bundle:dev"
+    exec "bun run bundle"
   else:
     selfExec "js -d:release src/dogfen.nim"
     exec "bun run bundle:prod"

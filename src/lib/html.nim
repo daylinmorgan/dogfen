@@ -1,0 +1,130 @@
+import std/[dom, os, uri, strutils, sequtils, macros]
+
+proc addToHead*(el: Element) =
+  document.getElementsByTagName("head")[0].appendChild(el)
+
+proc setViewPort*() =
+  var el = document.createElement("meta")
+  el.setAttr("name", "viewport")
+  el.setAttr("content", "width=device-width, initial-scale=1.0")
+  addToHead el
+
+proc addStylesheet*(content: string) =
+  var style = document.createElement("style")
+  style.innerHtml = content
+  addToHead style
+
+proc addStaticStyleSheet*(path: static string) =
+  const css = staticRead getProjectPath() / path
+  addStyleSheet css
+
+proc addScript*(src: string) =
+  var script = document.createElement("script")
+  script.setAttr("src", src)
+  addToHead script
+
+proc addStylesheetByHref*(href: string) =
+  var style = document.createElement("link")
+  style.setAttribute("rel", "stylesheet")
+  style.setAttribute("type", "text/css")
+  style.setAttribute("href", href)
+  addToHead style
+
+# TODO: add some more keyboard shortcuts?
+# proc handleKeyboardShortcut(e: Event) =
+#   let keyEvent = KeyboardEvent(e)
+#
+#   if keyEvent.key == "?" or (keyEvent.keyCode == 191 and keyEvent.shiftKey):
+#     window.alert("You typed a question mark!")
+
+proc blobHtml*(str: cstring): Blob {.importjs: "new Blob([#], {type: 'text/html'})".}
+proc createUrl*(blob: Blob): cstring {.importc: "window.URL.createObjectURL".}
+proc revokeObjectUrl*(url: cstring) {.importc: "window.URL.revokeObjectURL".}
+proc getFileName*(): string =
+  parseUri($window.document.URL).path.splitPath().tail
+
+func clone*(e: Element, deep = true): Element =
+  Element(Node(e).cloneNode(deep))
+
+proc newElement*(identifier: cstring, id: cstring ="", class: cstring = "", innerHtml: cstring = ""): Element =
+  result = document.createElement(identifier)
+  result.id = id
+  result.className = class
+  result.innerHtml = innerHtml
+
+# NOTE: this only appends children
+proc withChildren*(e: Element, children: varargs[Element]): Element =
+  result = e
+  for c in children:
+    result.appendChild(c)
+
+type
+  ElementKind* = enum
+    H1, Div, Ul, Li, Span, Button, A
+
+proc new*(ek: ElementKind, id: cstring = "", class: cstring = "", innerHtml: cstring = "", textContent: cstring = ""): Element =
+  result = document.createElement(($ek).toLowerAscii().cstring)
+  result.id = id
+  result.className = class
+  result.innerHtml = innerHtml
+  if textContent != "":
+    result.textContent = textContent
+
+proc withClass*(e: Element, class: cstring): Element =
+  result = e
+  result.class = class
+
+proc withHtml*(e: Element, innerHtml: cstring): Element =
+  result = e
+  result.innerHtml = innerHtml
+
+proc withText*(e: Element, text: cstring | string): Element = 
+  result = e
+  result.textContent = cstring(text)
+
+proc withOnClick*(e: Element, p: proc(e: Event)): Element =
+  result = e
+  result.onClick = p
+
+proc withAttrs*[
+  P: (string, cstring) | (string, string)
+](e: Element, pairs: openArray[P]): Element =
+  result = e
+  for (k, v) in pairs:
+    result.setAttr(cstring(k), cstring(v))
+
+proc withAttr*(e: Element, k: cstring | string, v: cstring | string): Element =
+  result = e
+  result.setAttr(cstring(k), cstring(v))
+
+proc withId*(e: Element, id: cstring | string): Element = 
+  e.withAttr("id", id)
+
+macro with*(e: untyped, body: untyped): untyped =
+  ## rename commands/calls on a series lines to a chain of `with{Name}` procs
+  ##
+  ##  o.with:
+  ##    task("thing")
+  ##    task3("thing3")
+  ## becomes:
+  ## task3(task(o, "thing"), "thing3")
+
+  result = e # initialize the result with the original expression (the receiver)
+  expectKind body, nnkStmtList
+  for node in body:
+    # We only care about calls or commands (e.g., class(...) or class ...)
+    expectKind node, {nnkCall, nnkCommand}
+    let name = node[0].strVal()
+    let withName = ident("with" & name.capitalizeAscii())
+    # Create a new call: withName(result, args...)
+    let newCall = newCall(withName, result)
+    for i in 1 ..< node.len:
+      newCall.add(node[i])
+    # Update result to be this new call to maintain the chain
+    result = newCall
+
+proc variant*(prefix: string, css: string): cstring =
+  ## generate css variants with common prefix
+  cstring(" " & css.splitWhitespace.mapIt(prefix & ":" &  it).join(" ") & " ")
+
+

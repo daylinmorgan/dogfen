@@ -5,7 +5,6 @@ author        = "Daylin Morgan"
 description   = "self-contained markdown viewer and editor"
 license       = "MIT"
 srcDir        = "src"
-bin           = @["notes"]
 
 
 # Dependencies

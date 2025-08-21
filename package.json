@@ -10,17 +10,18 @@
     "default": "./index.js"
   },
   "scripts": {
-    "bundle:dev": "esbuild src/dogfen.js --bundle --outfile=index.js",
-    "bundle:prod": "esbuild src/dogfen.js --minify --bundle --outfile=index.js"
+    "bundle:prod": "bun run bundle --minify",
+    "bundle": "esbuild src/dogfen.js --bundle --format=iife --external:https://* --outfile=index.js"
   },
   "devDependencies": {
-    "@codemirror/lang-markdown": "^6.3.4",
-    "@unocss/preset-typography": "^66.4.2",
-    "@unocss/preset-wind3": "^66.4.2",
-    "@unocss/runtime": "^66.4.2",
-    "esbuild": "^0.25.9",
+    "@codemirror/lang-markdown": "^6.5.0",
+    "@unocss/preset-typography": "^66.6.0",
+    "@unocss/preset-wind3": "^66.6.0",
+    "@unocss/runtime": "^66.6.0",
+    "codemirror": "^6.0.2",
+    "esbuild": "^0.25.12",
     "highlight.js": "^11.11.1",
-    "marked": "^16.1.2",
-    "marked-highlight": "^2.2.2"
+    "marked": "^16.4.2",
+    "marked-highlight": "^2.2.3"
   }
 }

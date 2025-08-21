@@ -1,161 +1,195 @@
-import std/[dom, jsffi, os, strformat, sugar, uri]
-import ./[unocss, markedjs, icons, codemirror]
+import std/[dom, jsffi, strformat, sugar]
+import std/[jsfetch, asyncjs]
+import ./deps/[unocss, markedjs, codemirror]
+import ./lib/[html, icons]
 
-const sourceURL = when defined(release): "https://unpkg.dev/dogfen" else: "index.js"
-const oneLiner = fmt"""<!DOCTYPE html><html><body><script src="{sourceUrl}"></script><textarea style="display:none;">"""
-const buttonClass = "text-black bg-blue p-2 rounded h-5 flex items-center"
 
-proc addToHead(el: Element) =
-  document.getElementsByTagName("head")[0].appendChild(el)
+const
+  sourceURL =
+    when defined(release): "https://unpkg.dev/dogfen" else: "index.js"
+  oneLiner =
+    fmt"""<!DOCTYPE html><html><body><script src="{sourceUrl}"></script><textarea style="display:none;">"""
+  buttonClass* =
+    "flex items-center justify-center w-10 h-10 bg-blue-400 rounded-md hover:bg-blue-500 transition-colors border-none cursor-pointer"
 
-proc setViewPort() =
-  var el = document.createElement("meta")
-  el.setAttr("name", "viewport")
-  el.setAttr("content", "width=device-width, initial-scale=1.0")
-  addToHead el
+proc loadingElement*: Element =
+  Div.new().with:
+    class "flex mx-auto lds-dual-ring"
 
-proc addStylesheet(content: string) =
-  var style = document.createElement("style")
-  style.innerHtml = content
-  addToHead style
+proc toggleEditor(_: Event) =
+  document
+    .getElementbyId("editor")
+    .classList
+    .toggle("hidden")
 
-proc addStylesheetByHref(href: string) =
-  var style = document.createElement("link")
-  style.setAttribute("rel", "stylesheet")
-  style.setAttribute("type", "text/css")
-  style.setAttribute("href", href)
-  addToHead style
+proc editBtnElement*: Element =
+  Button.new().with:
+    id "edit-btn"
+    class buttonClass
+    attr "type", "button"
+    html editIcon
+    onClick toggleEditor
 
-# add some more keyboard shortcuts?
-proc handleKeyboardShortcut(e: Event) =
-  let keyEvent = KeyboardEvent(e)
+proc getCurrentDoc(): cstring =
+  document.getElementById("inputbox").textContent
 
-  if keyEvent.key == "?" or (keyEvent.keyCode == 191 and keyEvent.shiftKey):
-    window.alert("You typed a question mark!")
+proc downloadPageAction(html: string, filename: string) =
+  let blob = blobHtml(cstring(html))
+  let url = createUrl(blob)
+  let link = A.new().withAttrs({
+      "href": $url,
+      "download": filename
+    })
 
-proc newSaveBtn: Element =
-  let fileName =
-    parseUri($window.document.URL).path.splitPath().tail
-  result = document.createElement("a")
-  result.innerHtml = saveIcon
-  result.className = buttonClass
-  result.setAttr("id", "save-btn")
-  result.setAttr("download", fileName.cstring)
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  revokeObjectURL(url)
 
-# TODO: add dropdown to save button with additional options:
-#  - save markdown (with comment header)
-#  - save offline doc?
-#    - fetch stylesheets and js
+proc downloadPageOffline() {.async.} =
+  let response = await fetch(cstring"https://unpkg.dev/dogfen")
+  let scriptSrc = await response.text()
+  let fullHtml = "<!DOCTYPE html><html><body>" & "\n<script>" & $scriptSrc & "</script>\n" &
+    """<textarea style="display:none;">""" &  $getcurrentDoc()
+  downloadPageAction(fullHtml, getFileName())
 
-proc newEditBtn: Element =
-  result = document.createElement("div")
-  result.setAttr("id", "edit-btn")
-  result.innerHtml = editIcon
-  result.className = buttonClass
-  result.addEventListener("click",
-    (_: Event) => (
-      document
-        .getElementbyId("editor")
-        .classList
-        .toggle("hidden")
-    ))
+proc downloadPage() =
+  let fullHtml = oneLiner & $getCurrentDoc()
+  downloadPageAction(fullHtml, getFileName())
+
+var menuOpen: bool
+proc toggle(b: var bool) {.inline.} = b = not b
+
+proc toggleMenu(_: Event) =
+  toggle menuOpen
+  let btn = document.getElementById("menu-btn")
+  btn.innerHtml = cstring(if menuOpen: closeIcon else: menuIcon)
+  document.getElementById("menu").classList.toggle "hidden"
+
+proc menuBtn: Element =
+  Button.new().with:
+    class buttonClass
+    html menuIcon
+    id "menu-btn"
+    attr "type", "button"
+    onClick: toggleMenu
+
+proc saveOfflineMenuItem: Element =
+  Span.new().with:
+    text "save document (offline)"
+    onClick (e: Event) => (discard downloadPageOffline())
+
+proc saveMenuItem: Element =
+  Span.new().with:
+    text "save document"
+    onClick (e: Event) => (downloadPage())
+
+proc menuList: Element =
+  let list =
+    Ul.new().with:
+      class "list-none flex flex-col min-w-60 pl-0"
+  for i in [saveMenuItem(), saveOfflineMenuItem()]:
+    let li = Li.new().with:
+        class("py-2 px-1 border-blue border-1 border-solid cursor-pointer hover:bg-gray-300")
+        children i
+    list.appendChild li
+
+  Div.new().with:
+    id "menu"
+    class "absolute right-0 hidden text-right bg-gray-100 px-5 shadow-xl"
+    children list
+
+proc menuElement: Element =
+  Div.new().with:
+    class "relative inline-block"
+    children menuBtn(), menuList()
 
 proc newHeader(): Element =
-  let header = document.createElement("div")
-  header.className = "flex flex-row mx-15 items-center gap-5 text-md"
-
-  # TODO: replace with a cooler logo/header
-  let h1 = document.createElement("h1")
-  h1.innerHTML = "Dogfen"
-  h1.className = "text-sm"
-
-
-  let spacer = document.createElement("div")
-  spacer.className = "flex-grow"
-
-  header.appendChild(h1)
-  header.appendChild(spacer)
-  header.appendChild(newSaveBtn())
-  header.appendChild(newEditBtn())
-
-  result = header
-
-proc blobHtml(str: cstring): Blob {.importjs: "new Blob([#], {type: 'text/html'})".}
-proc createUrl(blob: Blob): cstring {.importc: "window.URL.createObjectURL".}
+  Div.new().with:
+    class "flex flex-row mx-15 items-center gap-5 text-md mb-1"
+    children(
+      H1.new(class = "text-sm", textContent = "Dogfen"),
+      Div.new(class = "flex-grow"), # spacer element
+      editBtnElement(),
+      menuElement()
+    )
 
 proc renderDoc(doc: cstring = "") {.exportc.} =
   document
     .getElementbyId("preview")
     .innerHtml = marked.parse(doc)
 
-  let url = createUrl(blobHtml(cstring(oneLiner & "\n" & $doc)))
-
-  document
-    .getElementbyId("save-btn")
-    .setAttr("href", url)
-
+let proseClasses = (
+  "prose " &
+  variant("prose-table", "table-auto border border-1 border-solid border-collapse") &
+  variant("prose-td", "p-2 border border-solid border-1") &
+  variant("prose-th", "p-2 border border-solid border-1")
+)
 
 proc setupDocument =
   document.body.className = "min-h-85vh flex flex-col bg-gray-100"
-  document.body.setAttr("un-cloak", "")
 
-  let container = document.createElement("div")
-  container.setAttr("id", "doc")
-  container.className =
-    "h-full w-full flex flex-col md:flex-row gap-5 justify-center"
+  let editor =
+    Div.new().with:
+      id "editor"
+      class "w-40% hidden p-4 border-1 border-dashed rounded hidden"
 
-  let editor= document.createElement("div")
-  editor.setAttr("id", "editor")
-  editor.classList.toggle "hidden"
-  container.appendChild(editor)
-
-  let textarea = document.querySelector("textarea")
+  let textarea = document.querySelector("textarea").withId("inputbox")
   discard newEditorView(textarea.value, editor) # editor view needs to be attached to "renderDoc"
-  textarea.setAttr("id", "inputbox")
-  # textarea.style.removeProperty("display")
 
-  let preview = document.createElement("div")
-  preview.setAttr("id", "preview")
+  let preview =
+    Div.new().with:
+      id "preview"
+      # Add shadow?
+      class "min-w-1/2 p-4 border border-2 border-solid rounded bg-white " & proseClasses
 
-  textarea.className = "w-1/3 p-4 border-dashed rounded hidden"
-  preview.className =
-    "min-w-1/2 p-4 border border-2 border-red prose border-solid rounded bg-white"
+  let container =
+    Div.new().with:
+      id "doc"
+      class "h-full w-full flex flex-col md:flex-row gap-5 justify-center"
+      children editor, preview
 
-  document.body.appendChild(preview)
-  let footer = document.createElement("div")
-  footer.className = "mx-auto text-xs p-5"
-  footer.innerHTML = "self-rendering document powered by dogfen"
+  let footer =
+    Div.new().with:
+      class "mx-auto text-xs p-5"
+      text "self-rendering document powered by dogfen"
 
-  container.appendChild(preview)
   let header = newHeader()
 
   if not textarea.getAttribute("read-only").isNull:
     header.classList.toggle("hidden")
-    header.classList.toggle("flex") # flex -> display: flex;
+    header.classList.toggle("flex")
 
   document.body.appendChild(header)
   document.body.appendChild(container)
   document.body.appendChild(footer)
-  textarea.addEventListener(
-    "input", (_: Event) => renderDoc()
-  )
+
+  # TODO: implement some useful actions as keyboard shortcuts?
+  # document.body.addEventListener("keyup", handleKeyboardShortcut)
 
   # intial render
   renderDoc(textarea.value)
+  document.body.setAttr("un-cloak", "")
 
 proc domReady(_: Event) =
   setupDocument()
 
-  document.body.addEventListener("keyup", handleKeyboardShortcut)
-
-proc main =
+proc setStyles() =
   addStylesheet "[un-cloak]{display: none;}"
-  addStylesheetByHref "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css"
-  addStylesheetByHref "https://unpkg.com/@unocss/reset/normalize.css"
+  addStaticStyleSheet "static/normalize.css"
+  addStaticStyleSheet "static/highlight.min.css"
+  addStaticStyleSheet "static/styles.css"
   initUnocss()
+
+proc startApp() =
+  setStyles()
   setViewPort()
-
+  let documentReadyState {.importc: "document.readyState"}: cstring
+  if documentReadyState == "loading":
+    # Still parsing, wait for the event
+    document.addEventListener("DOMContentLoaded", domReady)
+  else:
+    setupDocument() # DOMContentLoaded already fired, just run setup
   echo "doc powered by dogfen: https://github.com/daylinmorgan/dogfen"
-  document.addEventListener("DOMContentLoaded", domReady)
 
-main()
+startApp() 
