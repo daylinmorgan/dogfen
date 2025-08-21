@@ -24,7 +24,7 @@ You could define a shell helper function to quickly convert a markdown doc to a 
 md2dogfen() {
   printf "%s\n\n%s\n" \
     '<!DOCTYPE html><html><body><script src="https://unpkg.dev/dogfen"></script><textarea style="display:none;">' \
-    "$(cat $1)"
+    "$(< "$1")"
 }
 ```
 

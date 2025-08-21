@@ -1,6 +1,5 @@
-import std/[jsffi, dom, sugar]
-import std/strformat
-import ./[unocss, markedjs, icons]
+import std/[dom, jsffi, os, strformat, sugar, uri]
+import ./[unocss, markedjs, icons, codemirror]
 
 const sourceURL = when defined(release): "https://unpkg.dev/dogfen" else: "index.js"
 const oneLiner = fmt"""<!DOCTYPE html><html><body><script src="{sourceUrl}"></script><textarea style="display:none;">"""
@@ -27,25 +26,41 @@ proc addStylesheetByHref(href: string) =
   style.setAttribute("href", href)
   addToHead style
 
+# add some more keyboard shortcuts?
+proc handleKeyboardShortcut(e: Event) =
+  let keyEvent = KeyboardEvent(e)
+
+  if keyEvent.key == "?" or (keyEvent.keyCode == 191 and keyEvent.shiftKey):
+    window.alert("You typed a question mark!")
+
 proc newSaveBtn: Element =
+  let fileName =
+    parseUri($window.document.URL).path.splitPath().tail
   result = document.createElement("a")
-  result.setAttr("id", "save-btn")
-  result.setAttr("download", "dogfen.html")
   result.innerHtml = saveIcon
   result.className = buttonClass
+  result.setAttr("id", "save-btn")
+  result.setAttr("download", fileName.cstring)
 
-proc toggleInputBox(_: Event) =
-  let inputbox = document.getElementbyId("inputbox")
-  inputbox.classList.toggle("hidden")
+# TODO: add dropdown to save button with additional options:
+#  - save markdown (with comment header)
+#  - save offline doc?
+#    - fetch stylesheets and js
 
 proc newEditBtn: Element =
   result = document.createElement("div")
   result.setAttr("id", "edit-btn")
   result.innerHtml = editIcon
   result.className = buttonClass
-  result.addEventListener("click", toggleInputBox)
+  result.addEventListener("click",
+    (_: Event) => (
+      document
+        .getElementbyId("editor")
+        .classList
+        .toggle("hidden")
+    ))
 
-proc setupHeader(): Element =
+proc newHeader(): Element =
   let header = document.createElement("div")
   header.className = "flex flex-row mx-15 items-center gap-5 text-md"
 
@@ -54,42 +69,50 @@ proc setupHeader(): Element =
   h1.innerHTML = "Dogfen"
   h1.className = "text-sm"
 
-  let saveBtn = newSaveBtn()
-  let editBtn = newEditBtn()
+
+  let spacer = document.createElement("div")
+  spacer.className = "flex-grow"
 
   header.appendChild(h1)
-  header.appendChild(saveBtn)
-  header.appendChild(editBtn)
+  header.appendChild(spacer)
+  header.appendChild(newSaveBtn())
+  header.appendChild(newEditBtn())
 
   result = header
 
-proc renderDoc =
-  let inputbox = document.getElementbyId("inputbox")
-  let preview = document.getElementbyId("preview")
-  preview.innerHtml = marked.parse(inputbox.value)
+proc blobHtml(str: cstring): Blob {.importjs: "new Blob([#], {type: 'text/html'})".}
+proc createUrl(blob: Blob): cstring {.importc: "window.URL.createObjectURL".}
 
-  let saveBtn = document.getElementbyId("save-btn")
+proc renderDoc(doc: cstring = "") {.exportc.} =
+  document
+    .getElementbyId("preview")
+    .innerHtml = marked.parse(doc)
 
-  proc blobHtml(str: cstring): Blob {.importjs: "new Blob([#], {type: 'text/html'})".}# h, constructor.}
-  proc createUrl(blob: Blob): cstring {.importc: "window.URL.createObjectURL".}
+  let url = createUrl(blobHtml(cstring(oneLiner & "\n" & $doc)))
 
-  let html = oneLiner & "\n" & inputbox.value
-  let url = createUrl(blobHtml(html))
-
-  saveBtn.setAttr("href", url)
+  document
+    .getElementbyId("save-btn")
+    .setAttr("href", url)
 
 
 proc setupDocument =
-  document.body.className = "min-h-85vh flex flex-col"
+  document.body.className = "min-h-85vh flex flex-col bg-gray-100"
   document.body.setAttr("un-cloak", "")
 
   let container = document.createElement("div")
+  container.setAttr("id", "doc")
   container.className =
-    "h-full w-full bg-gray-100 flex flex-col md:flex-row gap-5 justify-center"
+    "h-full w-full flex flex-col md:flex-row gap-5 justify-center"
+
+  let editor= document.createElement("div")
+  editor.setAttr("id", "editor")
+  editor.classList.toggle "hidden"
+  container.appendChild(editor)
 
   let textarea = document.querySelector("textarea")
+  discard newEditorView(textarea.value, editor) # editor view needs to be attached to "renderDoc"
   textarea.setAttr("id", "inputbox")
-  textarea.style.removeProperty("display")
+  # textarea.style.removeProperty("display")
 
   let preview = document.createElement("div")
   preview.setAttr("id", "preview")
@@ -99,25 +122,36 @@ proc setupDocument =
     "min-w-1/2 p-4 border border-2 border-red prose border-solid rounded bg-white"
 
   document.body.appendChild(preview)
+  let footer = document.createElement("div")
+  footer.className = "mx-auto text-xs p-5"
+  footer.innerHTML = "self-rendering document powered by dogfen"
 
-  container.appendChild(textarea)
   container.appendChild(preview)
-  let header = setupHeader()
+  let header = newHeader()
+
+  if not textarea.getAttribute("read-only").isNull:
+    header.classList.toggle("hidden")
+    header.classList.toggle("flex") # flex -> display: flex;
+
   document.body.appendChild(header)
   document.body.appendChild(container)
-  textarea.addEventListener("input", (_: Event) => renderDoc())
-  
+  document.body.appendChild(footer)
+  textarea.addEventListener(
+    "input", (_: Event) => renderDoc()
+  )
+
   # intial render
-  renderDoc()
+  renderDoc(textarea.value)
 
 proc domReady(_: Event) =
   setupDocument()
 
+  document.body.addEventListener("keyup", handleKeyboardShortcut)
 
 proc main =
   addStylesheet "[un-cloak]{display: none;}"
   addStylesheetByHref "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css"
-  addStylesheetByHref "https://unpkg.com/@unocssreset@0.62.3/normalize.css"
+  addStylesheetByHref "https://unpkg.com/@unocss/reset/normalize.css"
   initUnocss()
   setViewPort()
 

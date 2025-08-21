@@ -1,20 +1,23 @@
-import std/jsffi
+import std/[jsffi]
 
 let hljs {.exportc.} = require("highlight.js")
 
 type
   MarkedHighlightOptions = object
     langPrefix, emptyLangClass: string
-    highlight: proc(code: string, lang: string): string
+    highlight: proc(code: cstring, lang: cstring): cstring
 
   HighlightResponse = object
-    value: string
+    value: cstring
 
-proc getLanguage(hljs: JsObject, lang: string): bool {.importjs: "#.getLanguage(#)"}
-proc highlight(hljs: JsObject, code: string, o: JsObject): HighlightResponse {.importjs: "#.highlight(#, #)"}
-proc highlighter(code: string, lang: string): string =
-  let language = if hljs.getLanguage(lang): lang else: "plaintext"
-  hljs.highlight(code, JsObject{ language: language }).value
+proc getLanguage(hljs: JsObject, lang: cstring): bool {.importjs: "#.getLanguage(#)"}
+proc highlight(hljs: JsObject, code: cstring, o: JsObject): HighlightResponse {.importjs: "#.highlight(#, #)"}
+proc highlighter(code: cstring, lang: cstring): cstring =
+  let language =
+    if lang != cstring"" and hljs.getLanguage(lang): lang
+    else: cstring"plaintext"
+  result = hljs.highlight(code, JsObject{ language: language}).value
+
 
 proc markedHighlight(options: MarkedHighlightOptions): JsObject {.importjs: "require(\"marked-highlight\").markedHighlight(#)".}
 let Marked {.exportc.} = require("marked").Marked
