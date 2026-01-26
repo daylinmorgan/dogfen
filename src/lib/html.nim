@@ -1,4 +1,4 @@
-import std/[dom, os, uri, strutils, sequtils, macros]
+import std/[dom, os, uri, strutils, sequtils, macros, asyncjs, sugar]
 
 proc addToHead*(el: Element) =
   document.getElementsByTagName("head")[0].appendChild(el)
@@ -126,5 +126,11 @@ macro with*(e: untyped, body: untyped): untyped =
 proc variant*(prefix: string, css: string): cstring =
   ## generate css variants with common prefix
   cstring(" " & css.splitWhitespace.mapIt(prefix & ":" &  it).join(" ") & " ")
+
+proc clipboardWriteText*(n: Navigator, txt: cstring) {.async, importjs: "#.clipboard.writeText(#)"}
+proc setHtmlTimeout*(e: Element, innerHtml: cstring, timeout: int = 1000) =
+  let current = e.innerHtml
+  e.innerHtml = innerHtml
+  discard setTimeout(() => ( e.innerHtml = current), timeout)
 
 

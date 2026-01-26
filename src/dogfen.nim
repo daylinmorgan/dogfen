@@ -77,18 +77,35 @@ proc menuBtn: Element =
 proc saveOfflineMenuItem: Element =
   Span.new().with:
     text "save document (offline)"
-    onClick (e: Event) => (discard downloadPageOffline())
+    onClick proc(e: Event) =
+      e.currentTarget.Element.setHtmlTimeout("saving")
+      discard downloadPageOffline()
 
 proc saveMenuItem: Element =
   Span.new().with:
     text "save document"
-    onClick (e: Event) => (downloadPage())
+    onClick proc(e: Event) =
+      e.currentTarget.Element.setHtmlTimeout("saving")
+      downloadPage()
+
+proc copyInputBoxToClipboard(e: Event) =
+  let doc = getCurrentDoc()
+  discard navigator.clipboardWriteText(doc).then(
+    () => (document.getElementById("clipboard-select").setHtmlTimeout("copied!")),
+    (_: Error) => (document.getElementById("clipboard-select").setHtmlTimeout("copy failed")),
+  )
+
+proc copyToClipboard: Element =
+  Span.new.with:
+    id "clipboard-select"
+    text "copy to clipboard"
+    onClick copyInputBoxToClipboard
 
 proc menuList: Element =
   let list =
     Ul.new().with:
       class "list-none flex flex-col min-w-60 pl-0"
-  for i in [saveMenuItem(), saveOfflineMenuItem()]:
+  for i in [saveMenuItem(), saveOfflineMenuItem(), copyToClipboard()]:
     let li = Li.new().with:
         class("py-2 px-1 border-blue border-1 border-solid cursor-pointer hover:bg-gray-300")
         children i
