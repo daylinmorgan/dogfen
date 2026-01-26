@@ -1,4 +1,4 @@
-import std/[dom]
+import std/[dom, jsffi]
 
 {.
   emit:
@@ -9,8 +9,14 @@ import { markdown } from "@codemirror/lang-markdown";
 """
 .}
 
-type EditorView = object
-  dom: Element
+type
+  Text* {.importc.} = ref object
+    length*: int
+  EditorState* {.importc.} = ref object
+    doc*: Text
+  EditorView* {.importc.} = ref object
+    dom*: Element
+    state*: EditorState
 
 proc newEditorView*(
   doc: cstring, parent: Element
@@ -30,3 +36,16 @@ new EditorView({
 })
 """
 .}
+
+var editor* {.exportc.}: EditorView
+
+proc toString*(doc: Text): cstring {.importjs: "#.toString()"}
+proc dispatch(view: EditorView, o: JsObject) {.importjs: "#.dispatch(#)"}
+proc replaceContent*(view: EditorView, text: cstring) =
+  view.dispatch(js{
+    changes: js{
+      `from`: 0,
+      to: view.state.doc.length,
+      insert: text
+    }
+  })

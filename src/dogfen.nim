@@ -1,8 +1,6 @@
-import std/[dom, jsffi, strformat, sugar]
-import std/[jsfetch, asyncjs]
-import ./deps/[unocss, markedjs, codemirror]
+import std/[dom, jsffi, strformat, sugar, uri, jsfetch, asyncjs, strutils, jsconsole]
+import ./deps/[unocss, markedjs, codemirror, lz_string]
 import ./lib/[html, icons]
-
 
 const
   sourceURL =
@@ -12,11 +10,15 @@ const
   buttonClass* =
     "flex items-center justify-center w-10 h-10 bg-blue-400 rounded-md hover:bg-blue-500 transition-colors border-none cursor-pointer"
 
-proc loadingElement*: Element =
-  Div.new().with:
-    class "flex mx-auto lds-dual-ring"
 
-proc toggleEditor(_: Event) =
+proc loadingAnimation*: Element =
+  Div.new().with:
+    id "loading"
+    class "flex mx-auto"
+    attr "un-cloak", ""
+    children Div.new().withClass "lds-dual-ring"
+
+proc toggleEditor() {.exportc} =
   document
     .getElementbyId("editor")
     .classList
@@ -25,13 +27,14 @@ proc toggleEditor(_: Event) =
 proc editBtnElement*: Element =
   Button.new().with:
     id "edit-btn"
-    class buttonClass
+    # class buttonClass
+    class "btn-small"
     attr "type", "button"
     html editIcon
-    onClick toggleEditor
+    onClick (e: Event) => toggleEditor()
 
 proc getCurrentDoc(): cstring =
-  document.getElementById("inputbox").textContent
+  editor.state.doc.toString()
 
 proc downloadPageAction(html: string, filename: string) =
   let blob = blobHtml(cstring(html))
@@ -74,59 +77,56 @@ proc menuBtn: Element =
     attr "type", "button"
     onClick: toggleMenu
 
-proc newMenuItem: Element =
-  Li.new().with:
-    class("py-2 px-1 cursor-pointer hover:bg-gray-300")
-
-let toggleEditorMenuItem: Element =
-  Span.new().with:
-    text "toggle editor" # could make it hide/show depending on state
-    onClick toggleEditor
-
-let togglePreviewMenuItem: Element =
-  Span.new().with:
-    text "toggle preview"
-    onClick proc(e: Event) =
-      document.getElementById("preview").classList.toggle("hidden")
-
-let saveOfflineMenuItem: Element =
-  Span.new().with:
-    text "save document (offline)"
-    onClick proc(e: Event) =
-      e.currentTarget.Element.setHtmlTimeout("saving")
-      discard downloadPageOffline()
-
-let saveMenuItem: Element =
-  Span.new().with:
-    text "save document"
-    onClick proc(e: Event) =
-      e.currentTarget.Element.setHtmlTimeout("saving")
-      downloadPage()
-
 proc copyInputBoxToClipboard(e: Event) =
   let doc = getCurrentDoc()
   discard navigator.clipboardWriteText(doc).then(
-    () => (document.getElementById("clipboard-select").setHtmlTimeout("copied!")),
-    (_: Error) => (document.getElementById("clipboard-select").setHtmlTimeout("copy failed")),
+    () => (e.target.Element.setHtmlTimeout("copied!")),
+    (_: Error) => (e.target.Element.setHtmlTimeout("copy failed!")),
   )
 
-let copyToClipboardMenuItem: Element =
-  Span.new.with:
-    id "clipboard-select"
-    text "copy to clipboard"
-    onClick copyInputBoxToClipboard
+proc copyShareUrlToClipboard(e: Event) =
+  var uri = parseUri("https://dogfen.dayl.in") ? {"raw": "true"}
+  uri.anchor = $compressToEncodedURIComponent(getCurrentDoc())
+  discard navigator.clipboardWriteText(cstring($uri)).then(
+    () => e.target.Element.setHtmlTimeout("copied!"),
+    (_: Error) => e.target.Element.setHtmlTimeout("copy failed!")
+  )
+
+proc newMenuItem(text: cstring, onClick: proc(e: Event)): Element =
+  let inner = Div.new().with:
+    class("py-2 px-1 cursor-pointer hover:bg-gray-300 rounded")
+    text text
+    onClick onClick
+  result = Li.new().withChildren(inner)
+
+proc appendChildren(e: Element, sons: varargs[Element]) =
+  for s in sons:
+    e.appendChild(s)
+
+proc divider: Element =
+  Div.new().withClass("border b-1 border-solid")
 
 proc menuList: Element =
-  let list =
+  # NOTE: Does this even need to be a list?
+  var list =
     Ul.new().with:
       class "list-none flex flex-col min-w-60 pl-0"
-
-  for i in [toggleEditorMenuItem, togglePreviewMenuItem]:
-    list.appendChild(newMenuItem().withChildren(i))
-
-  list.appendChild(Div.new().withClass("border b-1 border-solid"))
-  for i in [saveMenuItem, saveOfflineMenuItem, copyToClipboardMenuItem]:
-    list.appendChild(newMenuItem().withChildren(i))
+      children: @[
+        newMenuItem("toggle editor", (_: Event) => toggleEditor()),
+        newMenuItem("toggle preview", (_: Event) => (document.getElementById("preview").classList.toggle("hidden"))),
+        divider(),
+        newMenuItem("save document", proc(e: Event) =
+          e.currentTarget.Element.setHtmlTimeout("saving")
+          downloadPage()
+        ),
+        newMenuItem("save document (offline)", proc(e: Event) =
+          e.currentTarget.Element.setHtmlTimeout("saving")
+          discard downloadPageOffline()
+        ),
+        divider(),
+        newMenuItem("share url", copyShareUrlToClipboard),
+        newMenuItem("copy markdown", copyInputBoxToClipboard),
+      ]
 
   Div.new().with:
     id "menu"
@@ -140,7 +140,7 @@ proc menuElement: Element =
 
 proc newHeader(): Element =
   Div.new().with:
-    class "flex flex-row mx-15 items-center gap-5 text-md mb-1"
+    class "flex flex-row mx-2 items-center gap-5 text-md mb-1"
     children(
       H1.new(class = "text-sm", textContent = "Dogfen"),
       Div.new(class = "flex-grow"), # spacer element
@@ -148,40 +148,129 @@ proc newHeader(): Element =
       menuElement()
     )
 
+
 proc renderDoc(doc: cstring = "") {.exportc.} =
   document
     .getElementbyId("preview")
     .innerHtml = marked.parse(doc)
 
 let proseClasses = (
-  "prose " &
+  "prose overflow-scroll hyphens-auto " &
   variant("prose-table", "table-auto border border-1 border-solid border-collapse") &
   variant("prose-td", "p-2 border border-solid border-1") &
   variant("prose-th", "p-2 border border-solid border-1")
 )
 
-proc setupDocument =
-  document.body.className = "min-h-85vh flex flex-col bg-gray-100"
 
-  let editor =
+type Config = object
+  href: string
+  raw: cstring
+  readOnly: bool
+  lang: cstring
+
+proc initFromUri(_: typedesc[Config]): Config =
+  let uri = parseUri($window.location.href)
+  for k, v in uri.query.decodeQuery():
+    if k == "href":
+      result.href = v
+    elif k == "raw":
+      result.raw = decompressFromEncodedURIComponent(uri.anchor.cstring)
+    elif k == "read-only":
+      result.readOnly = true
+    elif k == "lang":
+      result.lang = v.cstring
+
+  if result.lang.isNull:
+    result.lang = "en"
+
+
+# TODO: use catch? instead of try except
+
+proc errorFromUri(uri: string, e: Error): cstring =
+  var s: string
+  s.add """<span class="bg-red block text-5xl text-black"> DOGFEN ERROR </span>"""
+  s.add "failed to fetch data from: "
+  s.add "[" & uri & "]" & "(" & uri &  ")\\"
+  s.add "\nsee below for error:\n\n"
+  s.add """<div class="b-solid border-red p-5">"""
+  s.add e.message
+  s.add "</div>"
+  result = s.cstring
+
+proc getFromUri(uri: string): Future[cstring] {.async.} =
+  var cs = "".cstring
+  await fetch(uri.cstring)
+    .then((r: Response) => r.text())
+    .then((t: cstring) => (cs = t))
+    .catch((e: Error) => (cs = errorFromUri(uri, e)))
+  result = cs
+
+# a debug func to test network latency
+# proc promiseWait(): Future[void] {.async,importjs: """ new Promise(resolve => setTimeout(resolve, 5000)) """.}
+
+proc domReady() =
+  dogfenDomReady = true
+  document.dispatchEvent(newEvent"dogfenDomReady")
+
+proc extractTitle(doc: cstring): string =
+  for l in ($doc).splitLines():
+    # pick the first header-like thing
+    if l.strip().startsWith("#"):
+      return l.replace("#","").strip()
+
+proc setTitle(start: cstring) =
+  if not start.isNull:
+    document.title = cstring("dogfen - " & extractTitle(start))
+  else:
+    document.title = "dogfen"
+
+proc getStart(cfg: var Config): Future[cstring] {.async.} =
+  let textarea = document.querySelector("textarea").withId("inputbox")
+  # what to do if a textarea doesn't exist.. is that an error?
+  if not cfg.raw.isNil:
+    result = cfg.raw
+  elif cfg.href != "":
+    result = await getFromUri(cfg.href)
+  else:
+    if not textarea.getAttribute("read-only").isNull:
+      cfg.readOnly = true
+    let lang = textarea.getAttribute("lang")
+    if not lang.isNull:
+      cfg.lang = lang
+    result = textarea.value
+
+  assert not result.isNil # use returns or set a default error string
+
+proc handleKeyboardShortcut(e: Event) =
+  let keyEvent = KeyboardEvent(e)
+  if keyEvent.shiftKey and keyEvent.key == "E":
+    toggleEditor()
+
+proc setupDocument() {.async.} =
+  var cfg = Config.initFromUri()
+  document.body.className = "m-0 flex min-w-dvw"
+  document.body.appendChild(loadingAnimation())
+
+  let editorDom =
     Div.new().with:
       id "editor"
-      class "w-40% hidden p-4 border-1 border-dashed rounded hidden"
+      class "w-full max-w-95% lg:max-w-60% min-h-50 hidden py-1 border-1 border-dashed rounded mx-5 lg:mx-0"
 
-  let textarea = document.querySelector("textarea").withId("inputbox")
-  discard newEditorView(textarea.value, editor) # editor view needs to be attached to "renderDoc"
+  let start = await cfg.getStart()
+  setTitle start
+  editor = newEditorView(start, editorDom)
 
   let preview =
     Div.new().with:
       id "preview"
-      # Add shadow?
-      class "min-w-1/2 p-4 border border-2 border-solid rounded bg-white " & proseClasses
+      class "lg:max-w-65ch w-95% p-4 border border-2 border-solid rounded shadow-lg " & proseClasses
+      attr "lang", cfg.lang
 
-  let container =
+  let doc=
     Div.new().with:
       id "doc"
-      class "h-full w-full flex flex-col md:flex-row gap-5 justify-center"
-      children editor, preview
+      class "h-full w-full flex flex-col items-center lg:items-start lg:flex-row gap-5 mx-auto justify-center"
+      children editorDom, preview
 
   let footer =
     Div.new().with:
@@ -190,40 +279,44 @@ proc setupDocument =
 
   let header = newHeader()
 
-  if not textarea.getAttribute("read-only").isNull:
+  if cfg.readOnly:
     header.classList.toggle("hidden")
     header.classList.toggle("flex")
 
-  document.body.appendChild(header)
-  document.body.appendChild(container)
-  document.body.appendChild(footer)
+  let content = Div.new().with:
+    class "min-h-100vh flex flex-col bg-gray-100 p-2 w-full"
+    attr "un-cloak", ""
+    children header, doc, footer
 
-  # TODO: implement some useful actions as keyboard shortcuts?
-  # document.body.addEventListener("keyup", handleKeyboardShortcut)
+  document.body.appendChild(content)
 
-  # intial render
-  renderDoc(textarea.value)
-  document.body.setAttr("un-cloak", "")
+  # perform the intial render
+  if start != "":
+    renderDoc(start)
+  else:
+    const new = staticRead("static/new.md")
+    renderDoc(new)
 
-proc domReady(_: Event) =
-  setupDocument()
+  if not cfg.readOnly:
+    document.body.addEventListener("keydown", handleKeyboardShortcut)
+  domReady()
 
 proc setStyles() =
-  addStylesheet "[un-cloak]{display: none;}"
+  addStaticStyleSheet "static/styles.css"
   addStaticStyleSheet "static/normalize.css"
   addStaticStyleSheet "static/highlight.min.css"
-  addStaticStyleSheet "static/styles.css"
   initUnocss()
 
 proc startApp() =
-  setStyles()
   setViewPort()
+  setStyles()
   let documentReadyState {.importc: "document.readyState"}: cstring
   if documentReadyState == "loading":
     # Still parsing, wait for the event
-    document.addEventListener("DOMContentLoaded", domReady)
+    document.addEventListener("DOMContentLoaded", (_: Event) => (discard setupDocument()))
   else:
-    setupDocument() # DOMContentLoaded already fired, just run setup
+    discard setupDocument() # DOMContentLoaded already fired, just run setup
   echo "doc powered by dogfen: https://github.com/daylinmorgan/dogfen"
 
-startApp() 
+
+startApp()

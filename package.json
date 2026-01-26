@@ -3,15 +3,20 @@
   "version": "2026.1010.0",
   "license": "MIT",
   "files": [
-    "index.js"
+    "dist/dogfen.js",
+    "dist/dogfen.min.js"
   ],
-  "main": "./index.js",
+  "main": "dist/dogfen.js",
+  "browser": "dist/dogfen.min.js",
   "exports": {
-    "default": "./index.js"
+    "browser": "dist/index.min.js",
+    "unpkg": "dist/index.min.js",
+    "default": "dist/index.js"
   },
   "scripts": {
-    "bundle:prod": "bun run bundle --minify",
-    "bundle": "esbuild src/dogfen.js --bundle --format=iife --external:https://* --outfile=index.js"
+    "build": "nim build -d:release && nim build -d:minify",
+    "bundle:min": "bun run bundle --minify --outfile=dist/dogfen.min.js",
+    "bundle": "esbuild src/dogfen.js --bundle --format=iife --external:https://* --outfile=dist/dogfen.js"
   },
   "devDependencies": {
     "@codemirror/lang-markdown": "^6.5.0",
@@ -21,6 +26,7 @@
     "codemirror": "^6.0.2",
     "esbuild": "^0.25.12",
     "highlight.js": "^11.11.1",
+    "lz-string": "^1.5.0",
     "marked": "^16.4.2",
     "marked-highlight": "^2.2.3"
   }

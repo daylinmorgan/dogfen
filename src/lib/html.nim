@@ -9,6 +9,7 @@ proc setViewPort*() =
   el.setAttr("content", "width=device-width, initial-scale=1.0")
   addToHead el
 
+
 proc addStylesheet*(content: string) =
   var style = document.createElement("style")
   style.innerHtml = content
@@ -29,13 +30,6 @@ proc addStylesheetByHref*(href: string) =
   style.setAttribute("type", "text/css")
   style.setAttribute("href", href)
   addToHead style
-
-# TODO: add some more keyboard shortcuts?
-# proc handleKeyboardShortcut(e: Event) =
-#   let keyEvent = KeyboardEvent(e)
-#
-#   if keyEvent.key == "?" or (keyEvent.keyCode == 191 and keyEvent.shiftKey):
-#     window.alert("You typed a question mark!")
 
 proc blobHtml*(str: cstring): Blob {.importjs: "new Blob([#], {type: 'text/html'})".}
 proc createUrl*(blob: Blob): cstring {.importc: "window.URL.createObjectURL".}
@@ -100,7 +94,7 @@ proc withAttr*(e: Element, k: cstring | string, v: cstring | string): Element =
 proc withId*(e: Element, id: cstring | string): Element = 
   e.withAttr("id", id)
 
-macro with*(e: untyped, body: untyped): untyped =
+macro with*(e: Element, body: untyped): untyped =
   ## rename commands/calls on a series lines to a chain of `with{Name}` procs
   ##
   ##  o.with:
