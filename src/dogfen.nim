@@ -74,14 +74,29 @@ proc menuBtn: Element =
     attr "type", "button"
     onClick: toggleMenu
 
-proc saveOfflineMenuItem: Element =
+proc newMenuItem: Element =
+  Li.new().with:
+    class("py-2 px-1 cursor-pointer hover:bg-gray-300")
+
+let toggleEditorMenuItem: Element =
+  Span.new().with:
+    text "toggle editor" # could make it hide/show depending on state
+    onClick toggleEditor
+
+let togglePreviewMenuItem: Element =
+  Span.new().with:
+    text "toggle preview"
+    onClick proc(e: Event) =
+      document.getElementById("preview").classList.toggle("hidden")
+
+let saveOfflineMenuItem: Element =
   Span.new().with:
     text "save document (offline)"
     onClick proc(e: Event) =
       e.currentTarget.Element.setHtmlTimeout("saving")
       discard downloadPageOffline()
 
-proc saveMenuItem: Element =
+let saveMenuItem: Element =
   Span.new().with:
     text "save document"
     onClick proc(e: Event) =
@@ -95,7 +110,7 @@ proc copyInputBoxToClipboard(e: Event) =
     (_: Error) => (document.getElementById("clipboard-select").setHtmlTimeout("copy failed")),
   )
 
-proc copyToClipboard: Element =
+let copyToClipboardMenuItem: Element =
   Span.new.with:
     id "clipboard-select"
     text "copy to clipboard"
@@ -105,15 +120,17 @@ proc menuList: Element =
   let list =
     Ul.new().with:
       class "list-none flex flex-col min-w-60 pl-0"
-  for i in [saveMenuItem(), saveOfflineMenuItem(), copyToClipboard()]:
-    let li = Li.new().with:
-        class("py-2 px-1 border-blue border-1 border-solid cursor-pointer hover:bg-gray-300")
-        children i
-    list.appendChild li
+
+  for i in [toggleEditorMenuItem, togglePreviewMenuItem]:
+    list.appendChild(newMenuItem().withChildren(i))
+
+  list.appendChild(Div.new().withClass("border b-1 border-solid"))
+  for i in [saveMenuItem, saveOfflineMenuItem, copyToClipboardMenuItem]:
+    list.appendChild(newMenuItem().withChildren(i))
 
   Div.new().with:
     id "menu"
-    class "absolute right-0 hidden text-right bg-gray-100 px-5 shadow-xl"
+    class "absolute right-0 hidden text-right bg-gray-100 px-5 shadow-xl rounded-md"
     children list
 
 proc menuElement: Element =
