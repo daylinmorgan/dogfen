@@ -3,14 +3,20 @@ task watch, "watch src and run build":
 
 task build, "build app":
   when defined(release) or defined(minify):
-    selfExec "js -d:release src/dogfen.nim"
+    when defined(readOnly):
+      selfExec "js -d:release -d:readOnly src/dogfen.nim"
+    else:
+      selfExec "js -d:release src/dogfen.nim"
   else:
     selfExec "js src/dogfen.nim"
 
   when not defined(minify):
     exec "bun run bundle"
   else:
-    exec "bun run bundle:min"
+    when defined(readOnly):
+      exec "bun run bundle:read"
+    else:
+      exec "bun run bundle:min"
 
 
 # begin Nimble config (version 2)

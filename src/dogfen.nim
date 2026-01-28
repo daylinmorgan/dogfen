@@ -239,6 +239,7 @@ proc getStart(cfg: var Config): Future[cstring] {.async.} =
       cfg.lang = lang
     result = textarea.value
 
+
   assert not result.isNil # use returns or set a default error string
 
 proc handleKeyboardShortcut(e: Event) =
@@ -248,6 +249,7 @@ proc handleKeyboardShortcut(e: Event) =
 
 proc setupDocument() {.async.} =
   var cfg = Config.initFromUri()
+  cfg.readOnly = defined(readOnly)
   document.body.className = "m-0 flex min-w-dvw"
   document.body.appendChild(loadingAnimation())
 
@@ -258,7 +260,9 @@ proc setupDocument() {.async.} =
 
   let start = await cfg.getStart()
   setTitle start
-  editor = newEditorView(start, editorDom)
+
+  when not defined(readOnly):
+    editor = newEditorView(start, editorDom)
 
   let preview =
     Div.new().with:
