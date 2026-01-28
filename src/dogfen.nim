@@ -142,7 +142,7 @@ proc newHeader(): Element =
   Div.new().with:
     class "flex flex-row mx-2 items-center gap-5 text-md mb-1"
     children(
-      H1.new(class = "text-sm", textContent = "Dogfen"),
+      H1.new(class = "text-lg", textContent = "dogfen"),
       Div.new(class = "flex-grow"), # spacer element
       editBtnElement(),
       menuElement()
@@ -271,7 +271,7 @@ proc setupDocument() {.async.} =
   let doc=
     Div.new().with:
       id "doc"
-      class "h-full w-full flex flex-col items-center lg:items-start lg:flex-row gap-5 mx-auto justify-center"
+      class "h-full w-full flex flex-col items-center lg:items-start lg:flex-row gap-5 mx-auto lg:justify-center"
       children editorDom, preview
 
   let footer =
