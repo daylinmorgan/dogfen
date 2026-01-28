@@ -1,7 +1,9 @@
 {.emit: """
 
-import { Marked } from "marked";
-import { markedHighlight } from "marked-highlight";
+import { Marked } from 'marked';
+import { markedHighlight } from 'marked-highlight';
+import markedAlert from 'marked-alert';
+import markedFootnote from 'marked-footnote';
 
 import hljs from 'highlight.js/lib/common';
 import nim from 'highlight.js/lib/languages/nim';
@@ -35,6 +37,8 @@ proc highlighter(code: cstring, lang: cstring): cstring =
     else: cstring"plaintext"
   result = hljs.highlight(code, JsObject{language: language}).value
 proc markedHighlight(options: MarkedHighlightOptions): MarkedExtension {.importjs: "markedHighlight(#)".}
+proc markedAlert(): MarkedExtension {.importc.}
+proc markedFootnote(): MarkedExtension {.importc.}
 
 # proc newMarked(opts: MarkedExtension): Marked {.importjs: "new Marked(#)".}
 proc newMarked(): Marked {.importjs: "new Marked()"}
@@ -57,5 +61,7 @@ proc renderCode(code: cstring, infoString: cstring, escaped: bool): cstring {.ex
   result = cstring("""<pre class="not-prose p-5 rounded-md bg-[#e1e1e1] overflow-auto"""" & ($rendered)[4..^1])
 
 marked.use(highlightExt)
+marked.use(markedAlert())
+marked.use(markedFootnote())
 marked.use(MarkedExtension(gfm: true, renderer: MarkedRenderer(code: renderCode)))
 
