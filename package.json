@@ -9,9 +9,9 @@
   "main": "dist/dogfen.js",
   "browser": "dist/dogfen.min.js",
   "exports": {
-    "browser": "dist/index.min.js",
-    "unpkg": "dist/index.min.js",
-    "default": "dist/index.js"
+    "browser": "dist/dogfen.min.js",
+    "unpkg": "dist/dogfen.min.js",
+    "default": "dist/dogfen.js"
   },
   "scripts": {
     "build": "nim build -d:release && nim build -d:minify",
