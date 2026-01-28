@@ -247,6 +247,7 @@ proc handleKeyboardShortcut(e: Event) =
 proc setupDocument() {.async.} =
   var cfg = Config.initFromUri()
   cfg.readOnly = cfg.readOnly or defined(readOnly)
+
   document.body.className = "m-0 flex min-w-dvw"
   document.body.appendChild(loadingAnimation())
 

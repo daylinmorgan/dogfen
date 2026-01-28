@@ -11,10 +11,14 @@
   "main": "dist/dogfen.js",
   "browser": "dist/dogfen.min.js",
   "exports": {
-    "readonly": "dist/dogfen.readonly.min.js",
-    "browser": "dist/dogfen.min.js",
-    "unpkg": "dist/dogfen.min.js",
-    "default": "dist/dogfen.js"
+    "./readonly": {
+      "default": "dist/dogfen.readonly.min.js"
+    },
+    ".": {
+      "browser": "dist/dogfen.min.js",
+      "unpkg": "dist/dogfen.min.js",
+      "default": "dist/dogfen.js"
+    }
   },
   "scripts": {
     "build": "nim build -d:release && nim build -d:minify && nim build -d:minify -d:readOnly",
