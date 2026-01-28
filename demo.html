@@ -1,26 +1,24 @@
 <!DOCTYPE html><script src=dist/dogfen.js></script><textarea style=display:none>
 
-# Try CommonMark
+# Try Dogfen
 
-You can try CommonMark here.  This dingus is powered by
-[commonmark.js](https://github.com/commonmark/commonmark.js), the
-JavaScript reference implementation.
+Markdown parsing is handled by [markedjs](https://marked.js.org) and should be *mostly* github-flavored markdown compliant.
 
-### Lists
+## Lists
 
 1. item one
 2. item two
    - sublist
    - sublist
 
-### Tables
+## Tables
 
 | foo | bar | baz |
 | --- | --- | --- |
 | baz | bim | boo |
 | boo | bim | baz |
 
-### Code
+## Code
 
 ```nim
 import std/strformat
@@ -57,9 +55,33 @@ const
 
 for o in opcodes:
   echo o
-
 ```
 
-### Images
+## Images
 
 ![picsum photo](https://picsum.photos/300/200)
+
+## Footnotes
+
+Insert a footnote [^1].
+
+## Github-style alerts
+
+> [!NOTE]
+> Highlights information that users should take into account, even when skimming.
+
+> [!TIP]
+> Optional information to help a user be more successful.
+
+> [!IMPORTANT]
+> Crucial information necessary for users to succeed.
+
+> [!WARNING]
+> Critical content demanding immediate user attention due to potential risks.
+
+> [!CAUTION]
+> Negative potential consequences of an action.
+
+---
+
+[^1]: this is a footnote
