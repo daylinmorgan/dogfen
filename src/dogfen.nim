@@ -183,9 +183,6 @@ proc initFromUri(_: typedesc[Config]): Config =
   if result.lang.isNull:
     result.lang = "en"
 
-
-# TODO: use catch? instead of try except
-
 proc errorFromUri(uri: string, e: Error): cstring =
   var s: string
   s.add """<span class="bg-red block text-5xl text-black"> DOGFEN ERROR </span>"""
@@ -249,7 +246,7 @@ proc handleKeyboardShortcut(e: Event) =
 
 proc setupDocument() {.async.} =
   var cfg = Config.initFromUri()
-  cfg.readOnly = defined(readOnly)
+  cfg.readOnly = cfg.readOnly or defined(readOnly)
   document.body.className = "m-0 flex min-w-dvw"
   document.body.appendChild(loadingAnimation())
 
