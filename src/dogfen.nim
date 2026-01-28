@@ -174,7 +174,10 @@ proc initFromUri(_: typedesc[Config]): Config =
     if k == "href":
       result.href = v
     elif k == "raw":
+      # TODO: return an "error" display like with errorFromUri if this doesn't work as expected..
       result.raw = decompressFromEncodedURIComponent(uri.anchor.cstring)
+      if result.raw.isNull:
+        console.log "raw decrompression resulted in empty string"
     elif k == "read-only":
       result.readOnly = true
     elif k == "lang":
@@ -224,7 +227,8 @@ proc setTitle(start: cstring) =
 proc getStart(cfg: var Config): Future[cstring] {.async.} =
   let textarea = document.querySelector("textarea").withId("inputbox")
   # what to do if a textarea doesn't exist.. is that an error?
-  if not cfg.raw.isNil:
+
+  if not cfg.raw.isNull:
     result = cfg.raw
   elif cfg.href != "":
     result = await getFromUri(cfg.href)
@@ -246,7 +250,6 @@ proc handleKeyboardShortcut(e: Event) =
 
 proc setupDocument() {.async.} =
   var cfg = Config.initFromUri()
-  cfg.readOnly = cfg.readOnly or defined(readOnly)
 
   document.body.className = "m-0 flex min-w-dvw"
   document.body.appendChild(loadingAnimation())
@@ -257,6 +260,9 @@ proc setupDocument() {.async.} =
       class "w-full max-w-95% lg:max-w-60% min-h-50 hidden py-1 border-1 border-dashed rounded mx-5 lg:mx-0"
 
   let start = await cfg.getStart()
+
+  cfg.readOnly = cfg.readOnly or defined(readOnly)
+
   setTitle start
 
   when not defined(readOnly):
