@@ -1,0 +1,87 @@
+<!DOCTYPE html><script src=dist/dogfen.js></script><textarea style=display:none>
+
+# Try Dogfen
+
+Markdown parsing is handled by [markedjs](https://marked.js.org) and should be *mostly* github-flavored markdown compliant.
+
+## Lists
+
+1. item one
+2. item two
+   - sublist
+   - sublist
+
+## Tables
+
+| foo | bar | baz |
+| --- | --- | --- |
+| baz | bim | boo |
+| boo | bim | baz |
+
+## Code
+
+```nim
+import std/strformat
+
+type
+  Person = object
+    name: string
+    age: Natural # Ensures the age is positive
+
+let people = [
+  Person(name: "John", age: 45),
+  Person(name: "Kate", age: 30)
+]
+
+for person in people:
+  # Type-safe string interpolation,
+  # evaluated at compile time.
+  echo(fmt"{person.name} is {person.age} years old")
+
+# Use Nim's macro system to transform a dense
+# data-centric description of x86 instructions
+# into lookup tables that are used by
+# assemblers and JITs.
+import macros, strutils
+
+macro toLookupTable(data: static[string]): untyped =
+  result = newTree(nnkBracket)
+  for w in data.split(';'):
+    result.add newLit(w)
+
+const
+  data = "mov;btc;cli;xor"
+  opcodes = toLookupTable(data)
+
+for o in opcodes:
+  echo o
+```
+
+## Images
+
+![picsum photo](https://picsum.photos/300/200)
+
+## Footnotes
+
+Insert a footnote [^1].
+
+## Github-style alerts
+
+> [!NOTE]
+> Highlights information that users should take into account, even when skimming.
+
+> [!TIP]
+> Optional information to help a user be more successful.
+
+> [!IMPORTANT]
+> Crucial information necessary for users to succeed.
+
+> [!WARNING]
+> Critical content demanding immediate user attention due to potential risks.
+
+> [!CAUTION]
+> Negative potential consequences of an action.
+
+---
+
+[^1]: this is a footnote

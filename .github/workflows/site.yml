@@ -14,7 +14,7 @@ jobs:
 
     - name: build index.html
       run: |
-        sed "s|dist/index\.js|https://unpkg.dev/dogfen|" demo.html > site/demo.html
+        sed "s|dist/dogfen\.js|https://unpkg.dev/dogfen|" demo.html > site/demo.html
         echo '<!DOCTYPE html><script src=https://unpkg.dev/dogfen></script><textarea style=display:none>' > site/index.html
         cat README.md >> site/index.html
 
