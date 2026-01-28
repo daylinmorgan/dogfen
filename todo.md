@@ -1,10 +1,6 @@
 # dogfen todo's
 
 
-## docs
-
-- [ ] improve demo.html to shocase all syntax
-
 ## Variants
 
 - [ ] read-only source that doesn't import or use codemirror
@@ -12,6 +8,8 @@
 - [ ] cdn-deps
   - would make `dogfen.js` lighter
   - prevents the use of 'offline' mode unless we also embed the modules themselves
+- [ ] add support for emoji's
+  - I think it might be possible to piggy back off a presetIcons() implementation and the "marked-emoji parser"
 
 ## Branding
 
