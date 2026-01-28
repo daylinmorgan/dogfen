@@ -1,6 +1,6 @@
 {
   "name": "dogfen",
-  "version": "2026.1010.0",
+  "version": "2026.1011.0",
   "license": "MIT",
   "files": [
     "dist/dogfen.js",
