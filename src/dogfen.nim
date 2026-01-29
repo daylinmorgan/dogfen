@@ -9,6 +9,9 @@ const
     fmt"""<!DOCTYPE html><html><body><script src="{sourceUrl}"></script><textarea style="display:none;">"""
   buttonClass* =
     "flex items-center justify-center w-10 h-10 bg-blue-400 rounded-md hover:bg-blue-500 transition-colors border-none cursor-pointer"
+  new = staticRead("static/new.md")
+
+let newHtml = sanitize(marked.parse(new))
 
 
 proc loadingAnimation*: Element =
@@ -27,7 +30,6 @@ proc toggleEditor() {.exportc} =
 proc editBtnElement*: Element =
   Button.new().with:
     id "edit-btn"
-    # class buttonClass
     class "btn-small"
     attr "type", "button"
     html editIcon
@@ -152,7 +154,7 @@ proc newHeader(): Element =
 proc renderDoc(doc: cstring = "") {.exportc.} =
   document
     .getElementbyId("preview")
-    .innerHtml = sanitize(marked.parse(doc))
+    .innerHtml = if doc!= "": sanitize(marked.parse(doc)) else: newHtml
 
 let proseClasses = (
   "prose overflow-scroll hyphens-auto " &
@@ -218,6 +220,7 @@ proc domReady() =
 proc extractTitle(doc: cstring): string =
   for l in ($doc).splitLines():
     # pick the first header-like thing
+    # BUG: in code samples this makes the header a comment
     if l.strip().startsWith("#"):
       return l.replace("#","").strip()
 
@@ -281,7 +284,7 @@ proc setupDocument() {.async.} =
   let preview =
     Div.new().with:
       id "preview"
-      class "lg:max-w-65ch max-w-90% p-2 border border-2 border-solid rounded shadow-lg overflow-scroll " & proseClasses
+      class "lg:max-w-65ch max-w-90% p-2 border border-2 border-solid rounded shadow-lg overflow-scroll w-65ch lg:min-h-50 lg:min-w-40% " & proseClasses
       attr "lang", cfg.lang
 
   let doc=
@@ -309,12 +312,7 @@ proc setupDocument() {.async.} =
 
   document.body.appendChild(content)
 
-  # perform the intial render
-  if start != "":
-    renderDoc(start)
-  else:
-    const new = staticRead("static/new.md")
-    renderDoc(new)
+  renderDoc(start)
 
   if not cfg.readOnly:
     document.body.addEventListener("keydown", handleKeyboardShortcut)
