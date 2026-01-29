@@ -38,3 +38,5 @@ src/*.js
 
 # i accidentally build sometimes
 bin/
+
+site/demo.html
