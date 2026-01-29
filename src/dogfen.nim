@@ -231,11 +231,11 @@ proc getStart(cfg: var Config): Future[cstring] {.async.} =
   let textarea = document.querySelector("textarea").withId("inputbox")
 
   # what to do if a textarea doesn't exist.. is that an error?
-
+  var start: cstring
   if not cfg.raw.isNull:
-    result = cfg.raw
+    start = cfg.raw
   elif cfg.href != "":
-    result = await getFromUri(cfg.href)
+    start = await getFromUri(cfg.href)
   else:
     if not textarea.getAttribute("read-only").isNull:
       cfg.readOnly = true
@@ -244,12 +244,14 @@ proc getStart(cfg: var Config): Future[cstring] {.async.} =
     let lang = textarea.getAttribute("lang")
     if not lang.isNull:
       cfg.lang = lang
-    result = textarea.value
+    start = textarea.value
 
+  # TODO: make syntax highlight mode more sophisticated
   if not cfg.code.isNull:
-    result = "```" & cfg.code & "\n" & textarea.value & "\n```"
+    start = "```" & cfg.code & "\n" & start & "\n```"
 
-  assert not result.isNil # use returns or set a default error string
+  assert not start.isNil # use returns or set a default error string
+  result = start
 
 proc handleKeyboardShortcut(e: Event) =
   let keyEvent = KeyboardEvent(e)
