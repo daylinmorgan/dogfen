@@ -11,7 +11,7 @@ const
     "flex items-center justify-center w-10 h-10 bg-blue-400 rounded-md hover:bg-blue-500 transition-colors border-none cursor-pointer"
   new = staticRead("static/new.md")
 
-let newHtml = sanitize(marked.parse(new))
+let newHtml = marked.parse(new)
 
 
 proc loadingAnimation*: Element =
@@ -151,10 +151,11 @@ proc newHeader(): Element =
     )
 
 
+
 proc renderDoc(doc: cstring = "") {.exportc.} =
   document
     .getElementbyId("preview")
-    .innerHtml = if doc!= "": sanitize(marked.parse(doc)) else: newHtml
+    .innerHtml = if doc != "": sanitize(marked.parse(doc)) else: newHtml
 
 let proseClasses = (
   "prose overflow-scroll hyphens-auto " &
@@ -213,9 +214,9 @@ proc getFromUri(uri: string): Future[cstring] {.async.} =
 # a debug func to test network latency
 # proc promiseWait(): Future[void] {.async,importjs: """ new Promise(resolve => setTimeout(resolve, 5000)) """.}
 
-proc domReady() =
-  dogfenDomReady = true
-  document.dispatchEvent(newEvent"dogfenDomReady")
+# proc domReady() =
+#   dogfenDomReady = true
+#   document.dispatchEvent(newEvent"dogfenDomReady")
 
 proc extractTitle(doc: cstring): string =
   for l in ($doc).splitLines():
@@ -314,9 +315,9 @@ proc setupDocument() {.async.} =
 
   renderDoc(start)
 
-  if not cfg.readOnly:
-    document.body.addEventListener("keydown", handleKeyboardShortcut)
-  domReady()
+  # BUG: would trigger when codemirror was focused
+  # if not cfg.readOnly:
+  #   document.body.addEventListener("keydown", handleKeyboardShortcut)
 
 proc setStyles() =
   addStaticStyleSheet "static/styles.css"

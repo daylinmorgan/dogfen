@@ -21,20 +21,26 @@ proc initUnocssRuntime*(options: RuntimeOptions) {.esm: "default:@unocss/runtime
 proc presetWind4*(): UnocssPreset {.esm: "@unocss/preset-wind4", importc.}
 proc presetTypography*(o: TypographyOptions): UnocssPreset {.esm: "@unocss/preset-typography", importc.}
 
+
+#[
 proc extractAll(r: UnocssRuntime) {.importcpp.}
 proc update(r: UnocssRuntime) {.importcpp.}
+
 proc startUnocss(r: UnocssRuntime) =
     r.extractAll()
     r.update()
 
 var dogfenDomReady* = false
 
-proc ready(r: UnocssRuntime): bool =
-  result = false
-  if not dogfenDomReady:
-    document.addEventListener("dogfenDomReady", (_: Event) => r.startUnocss())
-  else:
-    r.startUnocss()
+# # BUG: this wasnt actually observing the content and I don't know that it's necessary.
+# proc ready(r: UnocssRuntime): bool =
+#   result = false
+#   if not dogfenDomReady:
+#     document.addEventListener("dogfenDomReady", (_: Event) => (r.startUnocss(); document.addEventListener("DOMContentLoaded", (_: Event) => r.startUnocss())))
+#   else:
+#     r.startUnocss()
+#     document.addEventListener("DOMContentLoaded", (_: Event) => r.startUnocss())
+]#
 
 let typoOpts =
   TypographyOptions(
@@ -60,6 +66,6 @@ proc initUnocss* =
         },
       },
       # manually trigger first extraction since we update the dom after initial load
-      ready: ready
+#      ready: ready
     }
   )
