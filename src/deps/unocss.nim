@@ -1,4 +1,5 @@
-import std/[jsffi, sugar]
+import std/[jsffi, sugar, dom]
+import ./esm
 
 type
   UnocssTransformer = ref object
@@ -16,21 +17,12 @@ type
     colorScheme: JsObject
     cssExtend: JsObject
 
-{.
-  emit:
-    """
-import initUnocssRuntime from "@unocss/runtime";
-import presetWind4 from "@unocss/preset-wind3";
-import presetTypography from "@unocss/preset-typography";
-"""
-.}
-import std/dom
-proc initUnocssRuntime*(options: RuntimeOptions) {.importc.}
-proc presetWind4*(): UnocssPreset {.importc.}
-proc presetTypography*(o: TypographyOptions): UnocssPreset {.importc.}
+proc initUnocssRuntime*(options: RuntimeOptions) {.esm: "default:@unocss/runtime", importc.}
+proc presetWind4*(): UnocssPreset {.esm: unocss, importc.}
+proc presetTypography*(o: TypographyOptions): UnocssPreset {.esm: unocss, importc.}
 
-proc extractAll(r: UnocssRuntime) {.importjs: "#.extractAll()".}
-proc update(r: UnocssRuntime) {.importjs: "#.update()".}
+proc extractAll(r: UnocssRuntime) {.importcpp.}
+proc update(r: UnocssRuntime) {.importcpp.}
 proc startUnocss(r: UnocssRuntime) =
     r.extractAll()
     r.update()

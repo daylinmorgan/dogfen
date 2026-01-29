@@ -12,26 +12,6 @@ func newImportEmit(identifiers: NimNode, moduleName: NimNode): NimNode =
 func importSet(names: varargs[string]): NimNode =
   newLit "{" & names.join(",") & "}"
 
-func fromProcDef(node: NimNode): string =
-  case node[0].kind
-  of nnkIdent:
-    result = $node[0]
-  of nnkPostFix:
-    result = $node[0][1]
-  else:
-    error fmt("unexpected node kind {node[0].kind} for proc must be an ident or ident*")
-
-func nameFromTypeDef(node: NimNode): string =
-  expectKind node, nnkTypeDef
-  case node[0].kind:
-  of nnkIdent:
-    result = $node[0]
-  of nnkPragmaExpr:
-    result = $node[0][0]
-            #     |  ^ ident
-            #     ^ PragmaExpr
-  else: assert false
-
 func fromCurly(node: NimNode): NimNode =
   expectKind node, nnkCurly
   var names: seq[string]
@@ -47,24 +27,21 @@ proc toImportStmts(node: NimNode, moduleName: NimNode, defaultImport: bool): seq
     result.add newImportEmit(newLit($node), moduleName)
   of nnkCurly:
     result.add newImportEmit(fromCurly(node), moduleName)
-  of nnkProcDef:
-    let name = fromProcDef(node)
-    let importName =
-      if defaultImport: newLit name
-      else: importSet name
+  of nnkProcDef, nnkTypeDef, nnkIdentDefs:
+    let name = $node[0].basename
+    let importName = if defaultImport: newLit name else: importSet name
     result.add newImportEmit(importName, moduleName)
   of nnkStmtList:
     for stmt in node:
       result.add toImportStmts(stmt, moduleName, defaultImport)
-  of nnkTypeSection:
+  of nnkTypeSection, nnkLetSection, nnkVarSection:
     for t in node:
       result.add toImportStmts(t, moduleName, defaultImport)
-  of nnkTypeDef:
-    let name = nameFromTypeDef(node)
-    let importName = if defaultImport: newLit(name) else: importSet(name)
-    result.add newImportEmit(importName,moduleName)
   else:
-    error fmt("unexpected node kind {node.kind} for target")
+    error fmt("don't know how to get name from {node.kind} for target:\n {repr node}")
+
+
+const defaultSpecKinds = {nnkProcDef, nnkTypeDef, nnkIdentDefs, nnkStmtList, nnkLetSection, nnkVarSection}
 
 macro esm*(module: untyped, target: untyped): untyped =
   ## generate ES module import statemets
@@ -73,19 +50,18 @@ macro esm*(module: untyped, target: untyped): untyped =
   var moduleName = module.strVal.newLit
 
   if ($module).startsWith("default:"):
-    if target.kind notin {nnkProcDef, nnkTypeDef, nnkStmtList}:
-      error "default:{module} only supported for procs and types"
+    if target.kind notin defaultSpecKinds:
+      error "default:{module} only supported for\n" & $defaultSpecKinds & "\ngot " & $target.kind
     moduleName = newLit ($module)[8..^1]
     defaultImport = true
   result = newStmtList()
   result.add toImportStmts(target, moduleName, defaultImport)
 
   case target.kind
-  of nnkProcDef:
+  of nnkProcDef, nnkLetSection, nnkVarSection:
     result.add target
   of nnkStmtList:
     for stmt in target:
       result.add stmt
   else: discard
-
 

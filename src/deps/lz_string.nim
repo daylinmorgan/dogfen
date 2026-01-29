@@ -1,11 +1,7 @@
-{.emit:"""import {
-  compressToEncodedURIComponent,
-  decompressFromEncodedURIComponent,
-} from 'lz-string';"""
-.}
+import ./esm
 
-proc compressToEncodedURIComponent*(s: cstring): cstring {.importc.}
-proc decompressFromEncodedURIComponent*(s: cstring): cstring  {.importc.}
+proc compressToEncodedURIComponent*(s: cstring): cstring {.esm: "lz-string", importc.}
+proc decompressFromEncodedURIComponent*(s: cstring): cstring  {.esm: "lz-string", importc.}
 
 
 

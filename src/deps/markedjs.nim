@@ -1,17 +1,15 @@
-{.emit: """
-
-import { Marked } from 'marked';
-import { markedHighlight } from 'marked-highlight';
-import markedAlert from 'marked-alert';
-import markedFootnote from 'marked-footnote';
-
-import hljs from 'highlight.js/lib/common';
-import nim from 'highlight.js/lib/languages/nim';
-hljs.registerLanguage('nim', nim);
-
-""".}
-
 import std/[jsffi]
+import ./esm
+
+type
+  Hljs = ref object ## highlight js module
+  HljsLanguage = ref object
+
+let hljs {.esm: "default:highlight.js/lib/common", importc.}: Hljs
+let nim {.esm: "default:highlight.js/lib/languages/nim", importc.}: HljsLanguage
+proc registerLanguage(hljs: Hljs, name: cstring, language: HljsLanguage) {.importcpp.}
+
+hljs.registerLanguage("nim", nim)
 
 type
   MarkedRenderer = object
@@ -24,26 +22,25 @@ type
   MarkedExtension = object
     pedantic, gfm: bool
     renderer: MarkedRenderer
-  Marked {.importc.} = object
 
-type Hljs = object ## highlight js module
-let hljs {.importjs: "hljs".}: Hljs
+esm marked:
+  type Marked {.importc.} = object
 
-proc getLanguage(hljs: Hljs, lang: cstring): bool {.importjs: "#.getLanguage(#)"}
-proc highlight(hljs: Hljs, code: cstring, o: JsObject): HighlightResponse {.importjs: "#.highlight(#, #)"}
+proc getLanguage(hljs: Hljs, lang: cstring): bool {.importcpp.}
+proc highlight(hljs: Hljs, code: cstring, o: JsObject): HighlightResponse {.importcpp.}
 proc highlighter(code: cstring, lang: cstring): cstring =
   let language =
     if lang != cstring"" and hljs.getLanguage(lang): lang
     else: cstring"plaintext"
   result = hljs.highlight(code, JsObject{language: language}).value
-proc markedHighlight(options: MarkedHighlightOptions): MarkedExtension {.importjs: "markedHighlight(#)".}
-proc markedAlert(): MarkedExtension {.importc.}
-proc markedFootnote(): MarkedExtension {.importc.}
+proc markedHighlight(options: MarkedHighlightOptions): MarkedExtension {.esm: "marked-highlight", importc.}
+proc markedAlert(): MarkedExtension {.esm: "default:marked-alert", importc.}
+proc markedFootnote(): MarkedExtension {.esm: "default:marked-footnote", importc.}
 
 # proc newMarked(opts: MarkedExtension): Marked {.importjs: "new Marked(#)".}
 proc newMarked(): Marked {.importjs: "new Marked()"}
-proc use(m: Marked, ext: MarkedExtension) {.importjs: "#.use(#)".}
-proc parse*(marked: Marked, txt: cstring): cstring {.importjs: "#.parse(#)".}
+proc use(m: Marked, ext: MarkedExtension) {.importcpp.}
+proc parse*(marked: Marked, txt: cstring): cstring {.importcpp.}
 
 var marked* {.exportc.} = newMarked()
 
