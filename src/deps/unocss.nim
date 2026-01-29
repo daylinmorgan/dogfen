@@ -1,4 +1,4 @@
-import std/[jsffi, sugar, dom]
+import std/[jsffi]
 import ./esm
 
 type
