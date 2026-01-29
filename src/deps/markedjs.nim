@@ -2,11 +2,12 @@ import std/[jsffi]
 import ./esm
 
 type
-  Hljs = ref object ## highlight js module
-  HljsLanguage = ref object
+  Hljs = ref object of JsRoot ## highlight js module
+  HljsLanguage = ref object of JsRoot
 
 let hljs {.esm: "default:highlight.js/lib/common", importc.}: Hljs
 let nim {.esm: "default:highlight.js/lib/languages/nim", importc.}: HljsLanguage
+
 proc registerLanguage(hljs: Hljs, name: cstring, language: HljsLanguage) {.importcpp.}
 
 hljs.registerLanguage("nim", nim)
@@ -24,7 +25,7 @@ type
     renderer: MarkedRenderer
 
 esm marked:
-  type Marked {.importc.} = object
+  type Marked = ref object of JsRoot
 
 proc getLanguage(hljs: Hljs, lang: cstring): bool {.importcpp.}
 proc highlight(hljs: Hljs, code: cstring, o: JsObject): HighlightResponse {.importcpp.}
@@ -42,7 +43,9 @@ proc newMarked(): Marked {.importjs: "new Marked()"}
 proc use(m: Marked, ext: MarkedExtension) {.importcpp.}
 proc parse*(marked: Marked, txt: cstring): cstring {.importcpp.}
 
+
 var marked* {.exportc.} = newMarked()
+
 
 let highlightExt = markedHighlight(
   MarkedHighlightOptions(
@@ -61,4 +64,3 @@ marked.use(highlightExt)
 marked.use(markedAlert())
 marked.use(markedFootnote())
 marked.use(MarkedExtension(gfm: true, renderer: MarkedRenderer(code: renderCode)))
-

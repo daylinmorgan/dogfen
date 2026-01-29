@@ -1,18 +1,18 @@
 import std/[dom, jsffi]
 import ./esm
 
-esm codemirror, {basicSetup}
+esm codemirror, { basicSetup }
 esm "@codemirror/lang-markdown", { markdown }
 
 type
-  Text* {.importc.} = ref object
+  Text* = ref object
     length*: int
-  EditorState* {.importc.} = ref object
+  EditorState* = ref object
     doc*: Text
 
 esm "@codemirror/view":
   type
-    EditorView* {.importc.} = ref object
+    EditorView* = ref object
       dom*: Element
       state*: EditorState
 

@@ -3,7 +3,7 @@
 
 ## Variants
 
-- [ ] read-only source that doesn't import or use codemirror
+- [x] read-only source that doesn't import or use codemirror
   - make source smaller for read-only use-case but require more abstraction at build-time
 - [ ] cdn-deps
   - would make `dogfen.js` lighter

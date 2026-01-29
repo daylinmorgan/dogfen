@@ -319,8 +319,8 @@ proc setStyles() =
 proc startApp() =
   setViewPort()
   setStyles()
-  let documentReadyState {.importc: "document.readyState"}: cstring
-  if documentReadyState == "loading":
+  let readyState {.importjs: "document.readyState"}: cstring
+  if readyState == "loading":
     # Still parsing, wait for the event
     document.addEventListener("DOMContentLoaded", (_: Event) => (discard setupDocument()))
   else:
