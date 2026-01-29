@@ -130,7 +130,7 @@ proc menuList: Element =
 
   Div.new().with:
     id "menu"
-    class "absolute right-0 hidden text-right bg-gray-100 px-5 shadow-xl rounded-md"
+    class "absolute right-0 hidden text-right bg-gray-100 px-5 shadow-xl rounded-md z-99"
     children list
 
 proc menuElement: Element =
@@ -140,7 +140,7 @@ proc menuElement: Element =
 
 proc newHeader(): Element =
   Div.new().with:
-    class "flex flex-row mx-2 items-center gap-5 text-md mb-1"
+    class "flex flex-row mx-5 gap-5 text-md mb-1 items-center"
     children(
       H1.new(class = "text-lg", textContent = "dogfen"),
       Div.new(class = "flex-grow"), # spacer element
@@ -251,13 +251,14 @@ proc handleKeyboardShortcut(e: Event) =
 proc setupDocument() {.async.} =
   var cfg = Config.initFromUri()
 
-  document.body.className = "m-0 flex min-w-dvw"
+  document.body.className = "p-0 m-0 flex w-100%"
   document.body.appendChild(loadingAnimation())
 
   let editorDom =
     Div.new().with:
       id "editor"
-      class "w-full max-w-95% lg:max-w-60% min-h-50 hidden py-1 border-1 border-dashed rounded mx-5 lg:mx-0"
+      class "max-w-95% lg:max-w-60% min-h-50 hidden py-1 border-1 border-dashed rounded lg:mx-0 z-0"
+
 
   let start = await cfg.getStart()
 
@@ -271,13 +272,13 @@ proc setupDocument() {.async.} =
   let preview =
     Div.new().with:
       id "preview"
-      class "lg:max-w-65ch w-95% p-4 border border-2 border-solid rounded shadow-lg " & proseClasses
+      class "lg:max-w-65ch max-w-90% p-2 border border-2 border-solid rounded shadow-lg overflow-scroll " & proseClasses
       attr "lang", cfg.lang
 
   let doc=
     Div.new().with:
       id "doc"
-      class "h-full w-full flex flex-col items-center lg:items-start lg:flex-row gap-5 mx-auto lg:justify-center"
+      class "h-full flex flex-col items-center lg:items-start lg:flex-row gap-5 mx-auto lg:justify-center w-full"
       children editorDom, preview
 
   let footer =
@@ -292,7 +293,7 @@ proc setupDocument() {.async.} =
     header.classList.toggle("flex")
 
   let content = Div.new().with:
-    class "min-h-100vh flex flex-col bg-gray-100 p-2 w-full"
+    class "min-h-100vh flex flex-col bg-gray-100 w-full"
     attr "un-cloak", ""
     children header, doc, footer
 
