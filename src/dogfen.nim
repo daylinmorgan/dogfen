@@ -1,5 +1,5 @@
 import std/[dom, jsffi, strformat, sugar, uri, jsfetch, asyncjs, strutils, jsconsole]
-import ./deps/[unocss, markedjs, codemirror, lz_string]
+import ./deps/[unocss, markedjs, codemirror, lz_string, dompurify]
 import ./lib/[html, icons]
 
 const
@@ -152,7 +152,7 @@ proc newHeader(): Element =
 proc renderDoc(doc: cstring = "") {.exportc.} =
   document
     .getElementbyId("preview")
-    .innerHtml = marked.parse(doc)
+    .innerHtml = sanitize(marked.parse(doc))
 
 let proseClasses = (
   "prose overflow-scroll hyphens-auto " &
