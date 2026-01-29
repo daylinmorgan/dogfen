@@ -267,8 +267,7 @@ proc setupDocument() {.async.} =
   let editorDom =
     Div.new().with:
       id "editor"
-      class "max-w-95% lg:max-w-60% min-h-50 hidden py-1 border-1 border-dashed rounded lg:mx-0 z-0"
-
+      class "max-w-95% lg:max-w-45% min-h-50 hidden py-1 border-1 border-dashed rounded lg:mx-0 z-0 w-90%"
 
   let start = await cfg.getStart()
 
@@ -288,7 +287,7 @@ proc setupDocument() {.async.} =
   let doc=
     Div.new().with:
       id "doc"
-      class "h-full flex flex-col items-center lg:items-start lg:flex-row gap-5 mx-auto lg:justify-center w-full"
+      class "h-full flex flex-col items-center lg:items-start lg:flex-row gap-5 mx-auto lg:justify-center w-full px-2"
       children editorDom, preview
 
   let footer =
@@ -301,6 +300,7 @@ proc setupDocument() {.async.} =
   if cfg.readOnly:
     header.classList.toggle("hidden")
     header.classList.toggle("flex")
+    doc.classList.toggle("mt-5")
 
   let content = Div.new().with:
     class "min-h-100vh flex flex-col bg-gray-100 w-full"
