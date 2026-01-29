@@ -8,12 +8,15 @@
   z-index: 9999;
 }
 .lds-dual-ring {
-  position: relative;
-  left: 50%;
-  top: 50%;
   display: inline-block;
   width: 80px;
   height: 80px;
+
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 .lds-dual-ring:after {
   content: " ";

@@ -142,7 +142,7 @@ proc newHeader(): Element =
   Div.new().with:
     class "flex flex-row mx-5 gap-5 text-md mb-1 items-center"
     children(
-      H1.new(class = "text-lg", textContent = "dogfen"),
+      H1.new(class = "text-lg font-black", textContent = "dogfen"),
       Div.new(class = "flex-grow"), # spacer element
       editBtnElement(),
       menuElement()
@@ -167,6 +167,7 @@ type Config = object
   raw: cstring
   readOnly: bool
   lang: cstring
+  code: cstring
 
 proc initFromUri(_: typedesc[Config]): Config =
   let uri = parseUri($window.location.href)
@@ -182,6 +183,8 @@ proc initFromUri(_: typedesc[Config]): Config =
       result.readOnly = true
     elif k == "lang":
       result.lang = v.cstring
+    elif k == "code":
+      result.code = v.cstring
 
   if result.lang.isNull:
     result.lang = "en"
@@ -226,6 +229,7 @@ proc setTitle(start: cstring) =
 
 proc getStart(cfg: var Config): Future[cstring] {.async.} =
   let textarea = document.querySelector("textarea").withId("inputbox")
+
   # what to do if a textarea doesn't exist.. is that an error?
 
   if not cfg.raw.isNull:
@@ -235,11 +239,15 @@ proc getStart(cfg: var Config): Future[cstring] {.async.} =
   else:
     if not textarea.getAttribute("read-only").isNull:
       cfg.readOnly = true
+    if not textarea.getAttribute("code").isNull:
+      cfg.code = textarea.getAttribute("code")
     let lang = textarea.getAttribute("lang")
     if not lang.isNull:
       cfg.lang = lang
     result = textarea.value
 
+  if not cfg.code.isNull:
+    result = "```" & cfg.code & "\n" & textarea.value & "\n```"
 
   assert not result.isNil # use returns or set a default error string
 
