@@ -158,7 +158,7 @@ proc renderDoc(doc: cstring = "") {.exportc.} =
     .innerHtml = if doc != "": sanitize(marked.parse(doc)) else: newHtml
 
 let proseClasses = (
-  "prose overflow-scroll hyphens-auto " &
+  "prose overflow-auto hyphens-auto " &
   variant("prose-table", "table-auto border border-1 border-solid border-collapse") &
   variant("prose-td", "p-2 border border-solid border-1") &
   variant("prose-th", "p-2 border border-solid border-1")
@@ -285,7 +285,7 @@ proc setupDocument() {.async.} =
   let preview =
     Div.new().with:
       id "preview"
-      class "lg:max-w-65ch max-w-90% p-2 border border-2 border-solid rounded shadow-lg overflow-scroll w-65ch lg:min-h-50 lg:min-w-40% " & proseClasses
+      class "lg:max-w-65ch max-w-90% p-2 border border-2 border-solid rounded shadow-lg w-65ch lg:min-h-50 lg:min-w-40% " & proseClasses
       attr "lang", cfg.lang
 
   let doc=
