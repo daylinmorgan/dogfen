@@ -19,6 +19,6 @@ jobs:
         with:
           node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
-
+      - run: bun install
       - run: bun run build
       - run: npm publish --provenance --access public
