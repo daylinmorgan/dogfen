@@ -18,8 +18,8 @@ type
     cssExtend: JsObject
 
 proc initUnocssRuntime*(options: RuntimeOptions) {.esm: "default:@unocss/runtime", importc.}
-proc presetWind4*(): UnocssPreset {.esm: unocss, importc.}
-proc presetTypography*(o: TypographyOptions): UnocssPreset {.esm: unocss, importc.}
+proc presetWind4*(): UnocssPreset {.esm: "@unocss/preset-wind4", importc.}
+proc presetTypography*(o: TypographyOptions): UnocssPreset {.esm: "@unocss/preset-typography", importc.}
 
 proc extractAll(r: UnocssRuntime) {.importcpp.}
 proc update(r: UnocssRuntime) {.importcpp.}
