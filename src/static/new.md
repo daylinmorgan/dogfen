@@ -4,7 +4,11 @@ Dogfen is a self-contained, self-rendering ~markdown~ HTML document.
 
 It allows us to turn a markdown document into a shareable html page with some basic formatting/syntax highlighting.
 
-To get started <span class="btn w-fit inline-block" onClick=" document.getElementById('editor').classList.toggle('hidden')" >open the editor</span> and start writing!
+To get started
+<span class="btn w-fit inline-block" onClick="document.getElementById('editor').classList.toggle('hidden')">
+open the editor
+</span> 
+and start writing!
 
 ---
 
