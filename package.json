@@ -25,7 +25,7 @@
     "build": "nim build -d:release && nim build -d:minify && nim build -d:minify -d:readOnly",
     "bundle:min": "bun run bundle --minify --outfile=dist/dogfen.min.js",
     "bundle:read": "bun run bundle --minify --outfile=dist/dogfen.readonly.min.js",
-    "bundle": "esbuild src/dogfen.js --bundle --external:https://* --outfile=dist/dogfen.js"
+    "bundle": "esbuild src/dogfen.js --bundle --external:https://* --outfile=dist/dogfen.js --format=esm"
   },
   "devDependencies": {
     "@codemirror/lang-markdown": "^6.5.0",

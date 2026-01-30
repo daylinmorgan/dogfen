@@ -9,9 +9,9 @@ const
     fmt"""<!DOCTYPE html><html><body><script src="{sourceUrl}"></script><textarea style="display:none;">"""
   buttonClass* =
     "flex items-center justify-center w-10 h-10 bg-blue-400 rounded-md hover:bg-blue-500 transition-colors border-none cursor-pointer"
-  new = staticRead("static/new.md")
+  newMd = staticRead("static/new.md")
 
-let newHtml = marked.parse(new)
+var newHtml : cstring
 
 
 proc loadingAnimation*: Element =
@@ -151,11 +151,15 @@ proc newHeader(): Element =
     )
 
 
+proc renderDoc(doc: cstring = "") {.async, exportc.} =
+  var html = newHtml
+  if doc != "":
+    let parseMarked = await(marked.parse(doc))
+    html = sanitize(parseMarked)
 
-proc renderDoc(doc: cstring = "") {.exportc.} =
   document
     .getElementbyId("preview")
-    .innerHtml = if doc != "": sanitize(marked.parse(doc)) else: newHtml
+    .innerHtml = html
 
 let proseClasses = (
   "prose overflow-auto hyphens-auto " &
@@ -171,6 +175,19 @@ type Config = object
   readOnly: bool
   lang: cstring
   code: cstring
+
+proc renderError(msg: string): cstring =
+  const pre = """<span class="bg-red block text-5xl text-black"> DOGFEN ERROR </span>""" 
+  cstring(pre & msg)
+
+proc errorFromUri(uri: string, e: Error): cstring =
+  renderError(
+    "failed to fetch data from: " &
+    "[" & uri & "]" & "(" & uri &  ")\\" &
+    "\nsee below for error:\n\n" &
+    """<div class="b-3 b-solid b-red p-5">""" & $e.message & "</div>"
+  )
+
 
 proc initFromUri(_: typedesc[Config]): Config =
   let uri = parseUri($window.location.href)
@@ -191,17 +208,6 @@ proc initFromUri(_: typedesc[Config]): Config =
 
   if result.lang.isNull:
     result.lang = "en"
-
-proc errorFromUri(uri: string, e: Error): cstring =
-  var s: string
-  s.add """<span class="bg-red block text-5xl text-black"> DOGFEN ERROR </span>"""
-  s.add "failed to fetch data from: "
-  s.add "[" & uri & "]" & "(" & uri &  ")\\"
-  s.add "\nsee below for error:\n\n"
-  s.add """<div class="b-solid border-red p-5">"""
-  s.add e.message
-  s.add "</div>"
-  result = s.cstring
 
 proc getFromUri(uri: string): Future[cstring] {.async.} =
   var cs = "".cstring
@@ -263,6 +269,7 @@ proc handleKeyboardShortcut(e: Event) =
     toggleEditor()
 
 proc setupDocument() {.async.} =
+  newHtml = await marked.parse(newMd)
   var cfg = Config.initFromUri()
 
   document.body.className = "p-0 m-0 flex w-100%"
@@ -297,7 +304,7 @@ proc setupDocument() {.async.} =
   let footer =
     Div.new().with:
       class "mx-auto text-xs p-5"
-      text "self-rendering document powered by dogfen"
+      html """self-rendering document powered by <a class="decoration-dotted" href=https://dogfen.dayl.in>dogfen</a>"""
 
   let header = newHeader()
 
@@ -313,7 +320,7 @@ proc setupDocument() {.async.} =
 
   document.body.appendChild(content)
 
-  renderDoc(start)
+  await renderDoc(start)
 
   # BUG: would trigger when codemirror was focused
   # if not cfg.readOnly:

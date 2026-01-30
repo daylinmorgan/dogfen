@@ -27,8 +27,8 @@ new EditorView({
   extensions: [
     basicSetup,
     markdown(),
-    EditorView.updateListener.of(function(v) {
-      if (v.docChanged) {renderDoc(v.state.doc.toString())}
+    EditorView.updateListener.of(async function(v) {
+      if (v.docChanged) {await renderDoc(v.state.doc.toString())}
       })
   ]
 })

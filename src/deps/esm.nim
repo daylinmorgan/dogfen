@@ -1,4 +1,4 @@
-import std/[macros, strutils,strformat]
+import std/[macros, strutils, strformat, asyncjs, jsffi]
 
 func newImportEmit(identifiers: NimNode, moduleName: NimNode): NimNode =
   expectKind identifiers, nnkStrLit
@@ -65,3 +65,12 @@ macro esm*(module: untyped, target: untyped): untyped =
       result.add stmt
   else: discard
 
+
+type
+  Module[T] = ref object of JsRoot
+    default: T
+
+proc esmImport*[T](moduleName: cstring): Future[Module[T]] {.async, importc:"import".}
+proc esmImportDefault*(moduleName: cstring, T: typedesc): Future[T] {.async.} =
+  let module = await esmImport[T](moduleName)
+  return module.`default`
