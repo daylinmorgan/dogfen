@@ -304,7 +304,7 @@ proc setupDocument() {.async.} =
   let footer =
     Div.new().with:
       class "mx-auto text-xs p-5"
-      html """self-rendering document powered by <a class="decoration-dotted" href=https://dogfen.dayl.in>dogfen</a>"""
+      html """self-rendering document powered by <a class="underline decoration-dotted" href=https://dogfen.dayl.in>dogfen</a>"""
 
   let header = newHeader()
 
