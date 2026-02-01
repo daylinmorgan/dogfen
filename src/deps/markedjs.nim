@@ -39,7 +39,7 @@ var marked* {.exportc.} = newMarked()
 proc renderCode(code: cstring, infoString: cstring, escaped: bool): cstring {.exportc.} =
   ## post-process marked-highlight render to add "not-prose" class to prevent styling overlap with @unocss/preset-typography
   let rendered = highlightExt.renderer.code(code, infoString, escaped)
-  result = cstring("""<pre class="not-prose p-5 rounded-md bg-[#e1e1e1] overflow-auto"""" & ($rendered)[4..^1])
+  result = cstring("""<pre class="not-prose p-5 rounded-md shadow-lg overflow-auto"""" & ($rendered)[4..^1])
 
 marked.use(highlightExt)
 marked.use(markedAlert())
