@@ -72,9 +72,12 @@ proc withHtml*(e: Element, innerHtml: cstring): Element =
   result = e
   result.innerHtml = innerHtml
 
-proc withText*(e: Element, text: cstring | string): Element = 
+proc withText*(e: Element, text: cstring): Element =
   result = e
-  result.textContent = cstring(text)
+  result.textContent = text
+
+proc withText*(e: Element, text: string): Element =
+  result = e.withText(cstring(text))
 
 proc withOnClick*(e: Element, p: proc(e: Event)): Element =
   result = e
@@ -87,9 +90,13 @@ proc withAttrs*[
   for (k, v) in pairs:
     result.setAttr(cstring(k), cstring(v))
 
-proc withAttr*(e: Element, k: cstring | string, v: cstring | string): Element =
+proc withAttr*(e: Element, k: cstring, v: cstring): Element =
   result = e
-  result.setAttr(cstring(k), cstring(v))
+  result.setAttr(k,v)
+
+proc withAttr*(e: Element, k: string, v: string): Element =
+  result = e
+  result.setAttr(cstring(k),  cstring(v))
 
 proc withId*(e: Element, id: cstring | string): Element = 
   e.withAttr("id", id)

@@ -101,9 +101,9 @@ proc newMenuItem(text: cstring, onClick: proc(e: Event)): Element =
     onClick onClick
   result = Li.new().withChildren(inner)
 
-proc appendChildren(e: Element, sons: varargs[Element]) =
-  for s in sons:
-    e.appendChild(s)
+# proc appendChildren(e: Element, sons: varargs[Element]) =
+#   for s in sons:
+#     e.appendChild(s)
 
 proc divider: Element =
   Div.new().withClass("border b-1 border-solid")
@@ -263,10 +263,10 @@ proc getStart(cfg: var Config): Future[cstring] {.async.} =
   assert not start.isNil # use returns or set a default error string
   result = start
 
-proc handleKeyboardShortcut(e: Event) =
-  let keyEvent = KeyboardEvent(e)
-  if keyEvent.shiftKey and keyEvent.key == "E":
-    toggleEditor()
+# proc handleKeyboardShortcut(e: Event) =
+#   let keyEvent = KeyboardEvent(e)
+#   if keyEvent.shiftKey and keyEvent.key == "E":
+#     toggleEditor()
 
 proc setupDocument() {.async.} =
   newHtml = await marked.parse(newMd)
