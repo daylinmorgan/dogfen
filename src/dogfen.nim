@@ -177,7 +177,7 @@ type Config = object
   code: cstring
 
 proc renderError(msg: string): cstring =
-  const pre = """<span class="bg-red block text-5xl text-black"> DOGFEN ERROR </span>""" 
+  const pre = """<span class="bg-red block text-5xl text-black"> DOGFEN ERROR </span>"""
   cstring(pre & msg)
 
 proc errorFromUri(uri: string, e: Error): cstring =
