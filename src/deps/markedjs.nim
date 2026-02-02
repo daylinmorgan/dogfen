@@ -1,4 +1,4 @@
-import std/[asyncjs]
+import std/[asyncjs, jsffi]
 import ./[esm, marked_highlight]
 
 type
@@ -15,6 +15,7 @@ type
 esm marked:
   type Marked = ref object of JsRoot
 
+# TODO: modify the markedAlert renderer to use less space
 proc markedAlert(): MarkedExtension {.esm: "default:marked-alert", importc.}
 proc markedFootnote(): MarkedExtension {.esm: "default:marked-footnote", importc.}
 

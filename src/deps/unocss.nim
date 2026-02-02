@@ -63,6 +63,13 @@ proc initUnocss* =
         shortcuts: js{
           "btn": "flex items-center justify-center p-1 bg-blue-400 rounded-md hover:bg-blue-500 transition-colors border-none cursor-pointer text-black".cstring,
           "btn-small": "btn w-10 h-10".cstring,
+          # handle at the renderer level?
+          "markdown-alert": "!border-l-2 pl-2".cstring,
+          "markdown-alert-note": "b-[#1f6feb]".cstring,
+          "markdown-alert-tip": "b-[#238636]".cstring,
+          "markdown-alert-important": "b-[#8957e5]".cstring,
+          "markdown-alert-warning": "b-[#9e6a03]".cstring,
+          "markdown-alert-caution": "b-[#da3633]".cstring,
         },
       },
       # manually trigger first extraction since we update the dom after initial load
