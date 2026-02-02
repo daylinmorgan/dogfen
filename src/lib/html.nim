@@ -1,4 +1,4 @@
-import std/[dom, os, uri, strutils, sequtils, macros, asyncjs, sugar]
+import std/[dom, os, strutils, sequtils, macros, asyncjs, sugar]
 
 proc addToHead*(el: Element) =
   document.getElementsByTagName("head")[0].appendChild(el)
@@ -35,7 +35,7 @@ proc blobHtml*(str: cstring): Blob {.importjs: "new Blob([#], {type: 'text/html'
 proc createUrl*(blob: Blob): cstring {.importc: "window.URL.createObjectURL".}
 proc revokeObjectUrl*(url: cstring) {.importc: "window.URL.revokeObjectURL".}
 proc getFileName*(): string =
-  parseUri($window.document.URL).path.splitPath().tail
+  ($window.location.pathname).splitPath().tail
 
 func clone*(e: Element, deep = true): Element =
   Element(Node(e).cloneNode(deep))
