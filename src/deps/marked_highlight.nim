@@ -31,9 +31,7 @@ proc setEsmLink(l: var Lang, s: string)=
   if s != "":
     assert s.contains("https://github.com")
     let ss = s.split("https://github.com/")
-    l.path = "gh/" & ss[1].strip().replace(")", "")
-  else:
-    l.path = officialPath  & l.langToOfficialName
+    l.path = ss[1].strip().replace(")", "")
 
 proc init(T: typedesc[Lang], row: string): T =
   let s = row.strip().split("|").mapIt(it.strip())
@@ -54,31 +52,44 @@ proc parseLanguagesDoc(): seq[Lang] =
     if lang.name notin notSupported:
       result.add lang
 
+type
+  LanguageExtensions = ref object of JsRoot
+    official: JsObject # map name/alias to official path
+    unofficial: JsObject # map name/alias to repo
 
-proc genLookUp(langs: seq[Lang]): Table[string,string] =
+proc toOfficialLangs(langs: seq[Lang]): Table[string, string] =
   for lang in langs:
-    result[lang.name] = lang.path
-    for a in lang.aliases:
-      result[a] = lang.path
+    if lang.path == "":
+      let path = langToOfficialName(lang)
+      result[lang.name.toLowerAscii()] = path
+      for a in lang.aliases:
+        result[a] = path
+
+proc toUnofficialLangs(langs: seq[Lang]): Table[string, string] =
+  for lang in langs:
+    if lang.path != "":
+      result[lang.name.toLowerAscii()] = lang.path
+      for a in lang.aliases:
+        result[a] = lang.path
 
 proc jsonParse(s: cstring): JsObject {.importjs: "JSON.parse(#)"}
-proc initSupportedLanguages(): JsObject =
-  const s = cstring($(%* parseLanguagesDoc().genLookUp()))
-  jsonParse(
-    s
-  )
 
-# TODO: use three datastructures for lookup
-# one that is alias/name -> name for download using (official path)
-# alias -> name (unofficial)
-# unoffical (name) -> repo
+proc initSupportedLanguages(): LanguageExtensions =
+  const official = cstring($(%* parseLanguagesDoc().toOfficialLangs()))
+  const unofficial = cstring($(%* parseLanguagesDoc().toUnofficialLangs()))
+  LanguageExtensions(official: jsonParse(official), unofficial: jsonparse(unofficial))
 
 let supportedLanguages = initSupportedLanguages()
 
 proc nameToImportLink(name: cstring): cstring =
-  let path = supportedLanguages[name].to(cstring)
-  if path != nil:
-    return baseUrl & path
+  var p: cstring
+  p = supportedLanguages.official[name].to(cstring)
+  if p != nil:
+    echo p
+    return baseUrl & officialPath & p
+  p = supportedLanguages.unofficial[name].to(cstring)
+  if p != nil:
+    return baseUrl & "gh/" & p
 
 type
   Hljs = ref object of JsRoot ## highlight js module
