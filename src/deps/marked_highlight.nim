@@ -1,5 +1,4 @@
-import std/[sequtils, strutils, tables]
-import std/[asyncjs, strutils, jsconsole, sugar, jsffi]
+import std/[sequtils, strutils, tables, asyncjs, jsconsole, sugar, jsffi, json]
 import ./esm
 
 
@@ -30,7 +29,6 @@ proc langToOfficialName(l: Lang): string =
 
 proc setEsmLink(l: var Lang, s: string)=
   if s != "":
-    echo l, s
     assert s.contains("https://github.com")
     let ss = s.split("https://github.com/")
     l.path = "gh/" & ss[1].strip().replace(")", "")
@@ -56,16 +54,31 @@ proc parseLanguagesDoc(): seq[Lang] =
     if lang.name notin notSupported:
       result.add lang
 
-# make this a 'path' and then make the dynammic load concat the string to baseUrl
 
-proc genLookUp(langs: seq[Lang]): Table[cstring, cstring] =
+proc genLookUp(langs: seq[Lang]): Table[string,string] =
   for lang in langs:
-    result[lang.name.cstring] = lang.path.cstring
+    result[lang.name] = lang.path
     for a in lang.aliases:
-      result[a.cstring] = lang.path.cstring
+      result[a] = lang.path
 
-const supportedLanguages = parseLanguagesDoc().genLookUp()
+proc jsonParse(s: cstring): JsObject {.importjs: "JSON.parse(#)"}
+proc initSupportedLanguages(): JsObject =
+  const s = cstring($(%* parseLanguagesDoc().genLookUp()))
+  jsonParse(
+    s
+  )
 
+# TODO: use three datastructures for lookup
+# one that is alias/name -> name for download using (official path)
+# alias -> name (unofficial)
+# unoffical (name) -> repo
+
+let supportedLanguages = initSupportedLanguages()
+
+proc nameToImportLink(name: cstring): cstring =
+  let path = supportedLanguages[name].to(cstring)
+  if path != nil:
+    return baseUrl & path
 
 type
   Hljs = ref object of JsRoot ## highlight js module
@@ -91,9 +104,8 @@ type
 proc getLanguage(hljs: Hljs, lang: cstring): bool {.importcpp.}
 proc highlight(hljs: Hljs, code: cstring, o: JsObject): HighlightResponse {.importcpp.}
 
-proc loadLanguageDynamic(name: cstring) {.async.} =
-  console.log "fetching missing language"
-  let link = baseUrl & supportedLanguages[name]
+proc loadLanguageDynamic(name: cstring, link: cstring) {.async.} =
+  console.log "fetching missing language: " & name
   await esmImportDefault(link, HljsLanguage)
     .then((lang: HljsLanguage) => hljs.registerLanguage(name, lang))
 
@@ -103,8 +115,9 @@ proc highlighter*(code: cstring, lang: cstring): Future[cstring] {.async.} =
     if hljs.getLanguage(lang): # language already registered
       language = lang
     else:
-      if lang in supportedLanguages:
-        await loadLanguageDynamic(lang)
+      let link = nameToImportLink(lang)
+      if link != nil:
+        await loadLanguageDynamic(lang, link)
           .then(() => (language = lang))
           .catch((e: Error) => console.log("failed to dynamically load ", lang, "for highlight.js: ", e.message))
     return hljs.highlight(code, JsObject{language: language}).value
