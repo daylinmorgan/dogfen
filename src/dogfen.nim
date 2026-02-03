@@ -232,10 +232,14 @@ proc extractTitle(doc: cstring): string =
       return l.replace("#","").strip()
 
 proc setTitle(start: cstring) =
+  var parts: seq[string] = @["dogfen"]
+  parts.add getFileName().replace(".html")
   if not start.isNull:
-    document.title = cstring("dogfen - " & extractTitle(start))
+    parts.add extractTitle(start)
   else:
     document.title = "dogfen"
+  # use raw mode info here somehow?
+  document.title = cstring(parts.join(" - "))
 
 proc getStart(cfg: var Config): Future[cstring] {.async.} =
   let textarea = document.querySelector("textarea").withId("inputbox")
