@@ -19,7 +19,7 @@ type
     cssExtend: JsObject
 
 proc initUnocssRuntime*(options: RuntimeOptions) {.esm: "default:@unocss/runtime", importc.}
-proc presetWind4*(): UnocssPreset {.esm: "@unocss/preset-wind4", importc.}
+proc presetWind4*(options: JsObject): UnocssPreset {.esm: "@unocss/preset-wind4", importc.}
 proc presetTypography*(o: TypographyOptions): UnocssPreset {.esm: "@unocss/preset-typography", importc.}
 
 let typoOpts =
@@ -37,7 +37,7 @@ proc initUnocss* =
     RuntimeOptions{
       defaults: UnocssConfig{
         presets: @[
-          presetWind4(),
+          presetWind4(js{preflights: js{reset: true}}),
           presetTypography(typoOpts)
         ],
         shortcuts: js{

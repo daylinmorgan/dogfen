@@ -334,7 +334,6 @@ proc setupDocument() {.async.} =
 
 proc setStyles() =
   addStaticStyleSheet "static/styles.css"
-  addStaticStyleSheet "static/normalize.css"
   addStaticStyleSheet "static/highlight.min.css"
   addToHead Link.new()
     .withAttr("rel", "icon")
