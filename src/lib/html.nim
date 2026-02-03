@@ -42,9 +42,12 @@ func clone*(e: Element, deep = true): Element =
 
 proc newElement*(identifier: cstring, id: cstring ="", class: cstring = "", innerHtml: cstring = ""): Element =
   result = document.createElement(identifier)
-  result.id = id
-  result.className = class
-  result.innerHtml = innerHtml
+  if id != "":
+    result.id = id
+  if class != "":
+    result.className = class
+  if innerHtml != "":
+    result.innerHtml = innerHtml
 
 # NOTE: this only appends children
 proc withChildren*(e: Element, children: varargs[Element]): Element =
@@ -58,9 +61,12 @@ type
 
 proc new*(ek: ElementKind, id: cstring = "", class: cstring = "", innerHtml: cstring = "", textContent: cstring = ""): Element =
   result = document.createElement(($ek).toLowerAscii().cstring)
-  result.id = id
-  result.className = class
-  result.innerHtml = innerHtml
+  if id != "":
+    result.id = id
+  if class != "":
+    result.className = class
+  if innerHtml != "":
+    result.innerHtml = innerHtml
   if textContent != "":
     result.textContent = textContent
 
@@ -98,7 +104,7 @@ proc withAttr*(e: Element, k: string, v: string): Element =
   result = e
   result.setAttr(cstring(k),  cstring(v))
 
-proc withId*(e: Element, id: cstring | string): Element = 
+proc withId*(e: Element, id: cstring | string): Element =
   e.withAttr("id", id)
 
 macro with*(e: Element, body: untyped): untyped =
