@@ -13,13 +13,15 @@ const
 
 var newHtml : cstring
 
-
 proc loadingAnimation*: Element =
   Div.new().with:
     id "loading"
     class "flex mx-auto"
     attr "un-cloak", ""
-    children Div.new().withClass "lds-dual-ring"
+    children(
+      Div.new().withClass("lds-dual-ring").withChildren(
+      Img.new(class = "h-10 inner-logo").withAttr("src", getDataUri(scroll, "image/svg+xml")))
+    )
 
 proc toggleEditor() {.exportc} =
   document
@@ -224,11 +226,7 @@ proc getFromUri(uri: string): Future[cstring] {.async.} =
   result = cs
 
 # a debug func to test network latency
-# proc promiseWait(): Future[void] {.async,importjs: """ new Promise(resolve => setTimeout(resolve, 5000)) """.}
-
-# proc domReady() =
-#   dogfenDomReady = true
-#   document.dispatchEvent(newEvent"dogfenDomReady")
+proc promiseWait(): Future[void] {.async,importjs: """ new Promise(resolve => setTimeout(resolve, 5000)) """.}
 
 proc extractTitle(doc: cstring): string =
   for l in ($doc).splitLines():

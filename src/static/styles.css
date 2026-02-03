@@ -1,23 +1,39 @@
 /* loading animation */
 #loading {
   position: fixed;
-  left: 0px;
-  top: 0px;
+  left: 0;
+  top: 0;
   width: 100%;
   height: 100%;
   z-index: 9999;
+  background: rgba(
+    255,
+    255,
+    255,
+    0.8
+  ); /* Added background to see the spinner */
+
+  /* Use Flexbox here to center the spinner on the screen */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 .lds-dual-ring {
-  display: inline-block;
+  display: flex; /* Centers the image inside the ring */
+  align-items: center;
+  justify-content: center;
   width: 80px;
   height: 80px;
-
-  margin: 0;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: relative; /* Keeps the :after ring anchored to this div */
 }
+
+.lds-dual-ring img {
+  width: 40px; /* Adjust based on preference */
+  height: auto;
+  display: block;
+}
+
 .lds-dual-ring:after {
   content: " ";
   display: block;
@@ -25,9 +41,13 @@
   height: 64px;
   margin: 8px;
   border-radius: 50%;
-  border: 6px solid #fff;
+  border: 6px solid #1d7526;
   border-color: #1d7526 transparent #1d7526 transparent;
   animation: lds-dual-ring 1.2s linear infinite;
+
+  /* Absolute position ensures the ring spins around the center point 
+     without pushing the image out of the way */
+  position: absolute;
 }
 
 @keyframes lds-dual-ring {
