@@ -19,6 +19,7 @@ type
     cssExtend: JsObject
   IconOptions = ref object
     cdn: cstring
+    extraProperties: JsObject
 
 proc initUnocssRuntime*(options: RuntimeOptions) {.esm: "default:@unocss/runtime", importc.}
 proc presetWind4*(options: JsObject): UnocssPreset {.esm: "@unocss/preset-wind4", importc.}
@@ -42,7 +43,14 @@ proc initUnocss* =
         presets: @[
           presetWind4(js{preflights: js{reset: true}}),
           presetTypography(typoOpts),
-          presetIcons(IconOptions(cdn: "https://esm.sh/"))
+          presetIcons(IconOptions(
+            cdn: "https://esm.sh/",
+            extraProperties: js{
+                "display": "inline-block".cstring,
+                "vertical-align": "middle".cstring,
+
+              }
+          ))
         ],
         shortcuts: js{
           "btn": "flex items-center justify-center p-1 bg-blue-400 rounded-md hover:bg-blue-500 transition-colors border-none cursor-pointer text-black".cstring,
@@ -56,7 +64,7 @@ proc initUnocss* =
           "markdown-alert-caution": "b-[#da3633]".cstring,
         },
         safelist: @[
-        " [&_p>code]:shadow"
+        "[&_p>code]:shadow",
         ],
       },
     }

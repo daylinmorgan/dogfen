@@ -332,7 +332,8 @@ proc setupDocument() {.async.} =
   document.body.appendChild(content)
 
   await renderDoc(start)
-
+  # await?
+  initUnocss()
   # BUG: would trigger when codemirror was focused
   # if not cfg.readOnly:
   #   document.body.addEventListener("keydown", handleKeyboardShortcut)
@@ -343,7 +344,6 @@ proc setStyles() =
   addToHead Link.new()
     .withAttr("rel", "icon")
     .withAttr("href", getDataUri(scroll, "image/svg+xml"))
-  initUnocss()
 
 proc startApp() =
   setViewPort()

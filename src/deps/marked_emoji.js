@@ -44,7 +44,7 @@ export function markedEmoji(options) {
         if (options.renderer) {
           return options.renderer(token);
         }
-        return `<div alt=${token.name}" class="i-openmoji-${token.name} text-3xl"></div>`
+        return `<span class="i-openmoji-${token.name} text-3xl"></span>`
       },
     }],
   };

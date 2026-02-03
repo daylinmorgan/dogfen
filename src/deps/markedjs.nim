@@ -1,4 +1,4 @@
-import std/[asyncjs, jsffi, strutils, sequtils, jsconsole, strformat]
+import std/[asyncjs, jsffi, strutils, sequtils, jsconsole, strformat, json]
 import std/[jsfetch, sugar]
 import ./[esm, marked_highlight]
 
@@ -46,24 +46,28 @@ proc renderCode(code: cstring, infoString: cstring, escaped: bool): cstring {.ex
 
 var marked* {.exportc.} = newMarked()
 
-proc fetchIconNames(icons: string = "openmoji"): Future[seq[cstring]] {.async.} =
-  var names: seq[cstring]
-  let emojis = await fetch(fmt"https://esm.sh/@iconify-json/{icons}/icons.json".cstring).then(
-    (r: Response) => r.json()
-  )
-  for k, _ in emojis.aliases.pairs:
-    names.add k
-  for  k, _ in emojis.icons.pairs:
-    names.add k
-  return names
+# proc fetchIconNames(icons: string = "openmoji"): Future[seq[cstring]] {.async.} =
+#   var names: seq[cstring]
+#   let emojis = await fetch(fmt"https://esm.sh/@iconify-json/{icons}/icons.json".cstring).then(
+#     (r: Response) => r.json()
+#   )
+#   for k, _ in emojis.aliases.pairs:
+#     names.add k
+#   for  k, _ in emojis.icons.pairs:
+#     names.add k
+#   return names
 
+# replaces the above proc
+const emojiNames = staticRead("../static/icons.txt").splitLines().mapIt(it.cstring)
+
+# doesn't NEED to be async anymore
 proc initMarked*() {.async.} =
   marked.use(highlightExt)
   marked.use(markedAlert())
   marked.use(markedFootnote())
   marked.use(markedEmoji(
     MarkedEmojiOptions(
-      emojis: await fetchIconNames(),
+      emojis: emojiNames,
     )
   ))
   marked.use(MarkedExtension(gfm: true, renderer: MarkedRenderer(code: renderCode)))

@@ -22,6 +22,9 @@
     }
   },
   "scripts": {
+    "dev": "concurrently npm:watch npm:serve",
+    "serve": "bunx http-server --cors",
+    "watch": "nim watch",
     "build": "nim build -d:release && nim build -d:minify && nim build -d:minify -d:readOnly",
     "bundle:min": "bun run bundle --minify --outfile=dist/dogfen.min.js",
     "bundle:read": "bun run bundle --minify --outfile=dist/dogfen.readonly.min.js",
@@ -29,11 +32,13 @@
   },
   "devDependencies": {
     "@codemirror/lang-markdown": "^6.5.0",
+    "@iconify-json/openmoji": "^1.2.21",
     "@unocss/preset-icons": "^66.6.0",
     "@unocss/preset-typography": "^66.6.0",
     "@unocss/preset-wind4": "^66.6.0",
     "@unocss/runtime": "^66.6.0",
     "codemirror": "^6.0.2",
+    "concurrently": "^9.2.1",
     "dompurify": "^3.3.1",
     "esbuild": "^0.25.12",
     "highlight.js": "^11.11.1",
