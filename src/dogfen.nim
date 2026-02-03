@@ -4,9 +4,9 @@ import ./lib/[html, icons]
 
 const
   sourceURL =
-    when defined(release): "https://unpkg.dev/dogfen" else: "index.js"
+    when defined(release): "https://unpkg.dev/dogfen" else: "dist/dogfen.js"
   oneLiner =
-    fmt"""<!DOCTYPE html><html><body><script src="{sourceUrl}"></script><textarea style="display:none;">"""
+    fmt"""<!doctype html><script src="{sourceUrl}"></script><textarea style="display:none;">"""
   buttonClass* =
     "flex items-center justify-center w-10 h-10 bg-blue-400 rounded-md hover:bg-blue-500 transition-colors border-none cursor-pointer"
   newMd = staticRead("static/new.md")
@@ -132,7 +132,7 @@ proc menuList: Element =
 
   Div.new().with:
     id "menu"
-    class "absolute right-0 hidden text-right bg-gray-100 px-5 shadow-xl rounded-md z-99"
+    class "absolute right-0 hidden text-right bg-gray-100 p-2 shadow-xl rounded-md z-99"
     children list
 
 proc menuElement: Element =
@@ -140,14 +140,18 @@ proc menuElement: Element =
     class "relative inline-block"
     children menuBtn(), menuList()
 
+
 proc newHeader(): Element =
   Div.new().with:
-    class "flex flex-row mx-5 gap-5 text-md mb-1 items-center"
+    class "flex flex-row mx-5 text-md m-2 items-center"
     children(
+      Img.new(class = "h-10").withAttr("src", getDataUri(scroll, "image/svg+xml")),
       H1.new(class = "text-lg font-black", textContent = "dogfen"),
       Div.new(class = "flex-grow"), # spacer element
-      editBtnElement(),
-      menuElement()
+      Div.new(class = "flex flex-row gap-5").withChildren(
+        editBtnElement(),
+        menuElement()
+      )
     )
 
 
@@ -337,7 +341,7 @@ proc setStyles() =
   addStaticStyleSheet "static/highlight.min.css"
   addToHead Link.new()
     .withAttr("rel", "icon")
-    .withAttr("href", getDataUri(favicon, "image/svg+xml"))
+    .withAttr("href", getDataUri(scroll, "image/svg+xml"))
   initUnocss()
 
 proc startApp() =

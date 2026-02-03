@@ -57,7 +57,7 @@ proc withChildren*(e: Element, children: varargs[Element]): Element =
 
 type
   ElementKind* = enum
-    H1, Div, Ul, Li, Span, Button, A, Link
+    H1, Div, Ul, Li, Span, Button, A, Link, Img
 
 proc new*(ek: ElementKind, id: cstring = "", class: cstring = "", innerHtml: cstring = "", textContent: cstring = ""): Element =
   result = document.createElement(($ek).toLowerAscii().cstring)
