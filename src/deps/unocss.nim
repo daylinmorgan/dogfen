@@ -5,6 +5,7 @@ type
   UnocssTransformer = ref object
   UnocssPreset = ref object
   UnocssConfig* = ref object
+    safelist: seq[cstring]
     presets*: seq[UnocssPreset]
     transformers: seq[UnocssTransformer]
     shortcuts: JsObject
@@ -20,27 +21,6 @@ type
 proc initUnocssRuntime*(options: RuntimeOptions) {.esm: "default:@unocss/runtime", importc.}
 proc presetWind4*(): UnocssPreset {.esm: "@unocss/preset-wind4", importc.}
 proc presetTypography*(o: TypographyOptions): UnocssPreset {.esm: "@unocss/preset-typography", importc.}
-
-
-#[
-proc extractAll(r: UnocssRuntime) {.importcpp.}
-proc update(r: UnocssRuntime) {.importcpp.}
-
-proc startUnocss(r: UnocssRuntime) =
-    r.extractAll()
-    r.update()
-
-var dogfenDomReady* = false
-
-# # BUG: this wasnt actually observing the content and I don't know that it's necessary.
-# proc ready(r: UnocssRuntime): bool =
-#   result = false
-#   if not dogfenDomReady:
-#     document.addEventListener("dogfenDomReady", (_: Event) => (r.startUnocss(); document.addEventListener("DOMContentLoaded", (_: Event) => r.startUnocss())))
-#   else:
-#     r.startUnocss()
-#     document.addEventListener("DOMContentLoaded", (_: Event) => r.startUnocss())
-]#
 
 let typoOpts =
   TypographyOptions(
@@ -71,8 +51,9 @@ proc initUnocss* =
           "markdown-alert-warning": "b-[#9e6a03]".cstring,
           "markdown-alert-caution": "b-[#da3633]".cstring,
         },
+        safelist: @[
+        " [&_p>code]:shadow"
+        ],
       },
-      # manually trigger first extraction since we update the dom after initial load
-#      ready: ready
     }
   )

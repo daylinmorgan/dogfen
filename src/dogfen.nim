@@ -163,6 +163,8 @@ proc renderDoc(doc: cstring = "") {.async, exportc.} =
 
 let proseClasses = (
   "prose overflow-auto hyphens-auto " &
+  " overflow-auto hyphens-auto " &
+  " [&_p>code]:shadow" &
   variant("prose-table", "table-auto border border-1 border-solid border-collapse") &
   variant("prose-td", "p-2 border border-solid border-1") &
   variant("prose-th", "p-2 border border-solid border-1")
