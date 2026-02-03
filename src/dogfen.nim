@@ -330,6 +330,9 @@ proc setStyles() =
   addStaticStyleSheet "static/styles.css"
   addStaticStyleSheet "static/normalize.css"
   addStaticStyleSheet "static/highlight.min.css"
+  addToHead Link.new()
+    .withAttr("rel", "icon")
+    .withAttr("href", getDataUri(favicon, "image/svg+xml"))
   initUnocss()
 
 proc startApp() =
