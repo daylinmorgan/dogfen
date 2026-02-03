@@ -1,5 +1,4 @@
-import std/[asyncjs, jsffi, strutils, sequtils, jsconsole, strformat, json]
-import std/[jsfetch, sugar]
+import std/[asyncjs, jsffi, strutils, sequtils]
 import ./[esm, marked_highlight]
 
 type
