@@ -248,6 +248,7 @@ proc setTitle(start: cstring) =
   document.title = cstring(parts.join(" - "))
 
 proc getStart(cfg: var Config): Future[cstring] {.async.} =
+  await initMarked()
   let textarea = document.querySelector("textarea").withId("inputbox")
 
   # what to do if a textarea doesn't exist.. is that an error?

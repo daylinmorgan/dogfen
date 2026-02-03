@@ -17,17 +17,20 @@ type
   TypographyOptions = ref object
     colorScheme: JsObject
     cssExtend: JsObject
+  IconOptions = ref object
+    cdn: cstring
 
 proc initUnocssRuntime*(options: RuntimeOptions) {.esm: "default:@unocss/runtime", importc.}
 proc presetWind4*(options: JsObject): UnocssPreset {.esm: "@unocss/preset-wind4", importc.}
 proc presetTypography*(o: TypographyOptions): UnocssPreset {.esm: "@unocss/preset-typography", importc.}
+proc presetIcons*(options: IconOptions): UnocssPreset {.esm: "@unocss/preset-icons", importc.}
 
 let typoOpts =
   TypographyOptions(
     cssExtend: js{
       "hr": js{
         "height": cstring"1px",
-        "background": cstring"black"
+        "background": cstring"black",
       },
     }
   )
@@ -38,7 +41,8 @@ proc initUnocss* =
       defaults: UnocssConfig{
         presets: @[
           presetWind4(js{preflights: js{reset: true}}),
-          presetTypography(typoOpts)
+          presetTypography(typoOpts),
+          presetIcons(IconOptions(cdn: "https://esm.sh/"))
         ],
         shortcuts: js{
           "btn": "flex items-center justify-center p-1 bg-blue-400 rounded-md hover:bg-blue-500 transition-colors border-none cursor-pointer text-black".cstring,

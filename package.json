@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@codemirror/lang-markdown": "^6.5.0",
+    "@unocss/preset-icons": "^66.6.0",
     "@unocss/preset-typography": "^66.6.0",
     "@unocss/preset-wind4": "^66.6.0",
     "@unocss/runtime": "^66.6.0",
