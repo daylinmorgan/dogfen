@@ -72,7 +72,7 @@ Insert a footnote [^1].
 
 ## Unocss-powered styling
 
-### Emojis
+### Emojis/Icons
 
 Inline emojis are converted to [openmoji](https://openmoji.org)
 
@@ -80,27 +80,22 @@ For example:
 `:heart:` = :heart:
 `:smiling-face:` = :smiling-face:
 
-
-### Custom markup
-
-```html
-<div class="bg-red hover:bg-blue p-5 rounded text-white">RED BOX</div>
-```
-
-
-<div class="bg-red hover:bg-blue p-5 rounded text-white">RED BOX (until hover)</div>
-
-
 To load icons besides openmoji (see <https://icones.js.org/> for all available icons) use an html snippet:
 
 ```html
 <span class="i-logos-nim-lang"></span>
 ```
 
-
 <span class="i-logos-nim-lang"></span>
 
 
+### Custom markup
+
+```html
+<div class="bg-red hover:bg-blue p-5 rounded text-white w-fit">RED BOX</div>
+```
+
+<div class="bg-red hover:bg-blue p-5 rounded text-white w-fit">RED BOX (until hover)</div>
 
 
 ## Github-style alerts

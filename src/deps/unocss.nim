@@ -63,9 +63,6 @@ proc initUnocss* =
           "markdown-alert-warning": "b-[#9e6a03]".cstring,
           "markdown-alert-caution": "b-[#da3633]".cstring,
         },
-        safelist: @[
-        "[&_p>code]:shadow",
-        ],
       },
     }
   )

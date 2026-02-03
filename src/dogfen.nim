@@ -167,10 +167,13 @@ proc renderDoc(doc: cstring = "") {.async, exportc.} =
     .getElementbyId("preview")
     .innerHtml = html
 
-let proseClasses = (
+let previewClasses= (
   "prose overflow-auto hyphens-auto " &
+  " font-sans " &
   " overflow-auto hyphens-auto " &
   " [&_p>code]:shadow" &
+  " [&_div.markdown-alert]:my-5 " &
+  " [&_div.markdown-alert_p]:m-1 " &
   variant("prose-table", "table-auto border border-1 border-solid border-collapse") &
   variant("prose-td", "p-2 border border-solid border-1") &
   variant("prose-th", "p-2 border border-solid border-1")
@@ -183,6 +186,12 @@ type Config = object
   readOnly: bool
   lang: cstring
   code: cstring
+
+var cfg: Config
+
+proc isCodeMode: bool =
+  if cfg.code != nil:
+    result = cfg.code != ""
 
 proc renderError(msg: string): cstring =
   const pre = """<span class="bg-red block text-5xl text-black"> DOGFEN ERROR </span>"""
@@ -279,7 +288,7 @@ proc getStart(cfg: var Config): Future[cstring] {.async.} =
 
 proc setupDocument() {.async.} =
   newHtml = await marked.parse(newMd)
-  var cfg = Config.initFromUri()
+  cfg = Config.initFromUri()
 
   document.body.className = "p-0 m-0 flex w-100%"
   document.body.appendChild(loadingAnimation())
@@ -301,7 +310,7 @@ proc setupDocument() {.async.} =
   let preview =
     Div.new().with:
       id "preview"
-      class "lg:max-w-65ch max-w-90% p-2 border border-2 border-solid rounded shadow-lg w-65ch lg:min-h-50 lg:min-w-40% " & proseClasses
+      class "lg:max-w-65ch max-w-90% p-2 border border-2 border-solid rounded shadow-lg w-65ch lg:min-h-50 lg:min-w-40% " & previewClasses
       attr "lang", cfg.lang
 
   let doc=
