@@ -1,14 +1,14 @@
 {
   "name": "dogfen",
   "description": "self-rendering ~markdown~ html documents",
-  "version": "2026.1018.0",
+  "version": "2026.1022.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/daylinmorgan/dogfen.git"
   },
   "license": "MIT",
   "files": [
-    "dist/*",
+    "dist/*"
   ],
   "main": "dist/dogfen.js",
   "browser": "dist/dogfen.min.js",
