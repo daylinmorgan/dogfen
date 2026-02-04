@@ -28,6 +28,8 @@ proc use(m: Marked, ext: MarkedExtension) {.importcpp.}
 proc parse*(marked: Marked, txt: cstring): Future[cstring] {.importcpp.}
 proc markedHighlight*(options: MarkedHighlightOptions): MarkedExtension {.esm: "marked-highlight", importc.}
 proc markedEmoji(options: MarkedEmojiOptions): MarkedExtension {.esm: "./deps/marked_emoji.js", importc.}
+when defined(katex):
+  proc markedKatex(): MarkedExtension {.esm: "default:marked-katex-extension", importc.}
 
 let highlightExt* = markedHighlight(
   MarkedHighlightOptions(
@@ -69,4 +71,8 @@ proc initMarked*() {.async.} =
       emojis: emojiNames,
     )
   ))
+  when defined(katex):
+    marked.use(markedKatex())
   marked.use(MarkedExtension(gfm: true, renderer: MarkedRenderer(code: renderCode)))
+
+

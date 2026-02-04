@@ -348,6 +348,9 @@ proc setupDocument() {.async.} =
 proc setStyles() =
   addStaticStyleSheet "static/styles.css"
   addStaticStyleSheet "static/highlight.min.css"
+  when defined(katex):
+    addStylesheetByHref "https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+
   addToHead Link.new()
     .withAttr("rel", "icon")
     .withAttr("href", getDataUri(scroll, "image/svg+xml"))
