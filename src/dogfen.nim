@@ -2,15 +2,7 @@ import std/[strformat, uri, jsfetch]
 import ./deps/[unocss, markedjs, codemirror, lz_string, dompurify]
 import ./lib
 
-const
-  sourceURL =
-    when defined(release): "https://esm.sh/dogfen" else: "dist/dogfen.js"
-  oneLiner =
-    fmt"""<!doctype html><script type=module src={sourceUrl}></script><textarea style=display:none>"""
-  buttonClass* =
-    "flex items-center justify-center w-10 h-10 bg-blue-400 rounded-md hover:bg-blue-500 transition-colors border-none cursor-pointer"
-  newMd = staticRead("static/new.md")
-
+const newMd = staticRead("static/new.md")
 var newHtml : cstring
 
 type Config = object
@@ -90,7 +82,7 @@ proc downloadPage() =
 var menuOpen: bool
 proc toggle(b: var bool) {.inline.} = b = not b
 
-proc toggleMenu(_: Event) =
+proc toggleMenu(e: Event) =
   toggle menuOpen
   let btn = document.getElementById("menu-btn")
   btn.innerHtml = cstring(if menuOpen: closeIcon else: menuIcon)
@@ -98,7 +90,7 @@ proc toggleMenu(_: Event) =
 
 proc menuBtn: Element =
   Button.new().with:
-    class buttonClass
+    class "btn-small"
     html menuIcon
     id "menu-btn"
     attr "type", "button"
@@ -113,6 +105,14 @@ proc copyInputBoxToClipboard(e: Event) =
 
 proc copyShareUrlToClipboard(e: Event) =
   var uri = parseUri("https://dogfen.dayl.in") ? {"raw": "true"}
+  uri.anchor = $compressToEncodedURIComponent(getCurrentDoc())
+  discard navigator.clipboardWriteText(cstring($uri)).then(
+    () => e.target.Element.setHtmlTimeout("copied!"),
+    (_: Error) => e.target.Element.setHtmlTimeout("copy failed!")
+  )
+
+proc copyShareUrlToClipboardReadOnly(e: Event) =
+  var uri = parseUri("https://dogfen.dayl.in") ? {"raw": "true", "read-only": ""}
   uri.anchor = $compressToEncodedURIComponent(getCurrentDoc())
   discard navigator.clipboardWriteText(cstring($uri)).then(
     () => e.target.Element.setHtmlTimeout("copied!"),
@@ -152,6 +152,7 @@ proc menuList: Element =
         ),
         divider(),
         newMenuItem("share url", copyShareUrlToClipboard),
+        newMenuItem("share url (read-only)", copyShareUrlToClipboardReadOnly),
         newMenuItem("copy markdown", copyInputBoxToClipboard),
       ]
 
@@ -286,10 +287,6 @@ proc getStart(cfg: var Config): Future[cstring] {.async.} =
     if not lang.isNull:
       cfg.lang = lang
     start = textarea.value
-
-  # # TODO: make syntax highlight mode more sophisticated
-  # if not cfg.code.isNull:
-  #   start = "```" & cfg.code & "\n" & start & "\n```"
 
   assert not start.isNil # use returns or set a default error string
   result = start

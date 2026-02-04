@@ -141,4 +141,5 @@ proc setHtmlTimeout*(e: Element, innerHtml: cstring, timeout: int = 1000) =
   e.innerHtml = innerHtml
   discard setTimeout(() => ( e.innerHtml = current), timeout)
 
-
+# is this a typo in std/dom?
+proc contains*(n1: Node, n2: Node): bool {.importcpp.}
