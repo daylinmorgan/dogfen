@@ -8,9 +8,7 @@
   },
   "license": "MIT",
   "files": [
-    "dist/dogfen.js",
-    "dist/dogfen.min.js",
-    "dist/dogfen.readonly.min.js"
+    "dist/*",
   ],
   "main": "dist/dogfen.js",
   "browser": "dist/dogfen.min.js",
