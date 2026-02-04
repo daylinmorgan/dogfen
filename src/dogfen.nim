@@ -4,9 +4,9 @@ import ./lib/[html, icons]
 
 const
   sourceURL =
-    when defined(release): "https://unpkg.dev/dogfen" else: "dist/dogfen.js"
+    when defined(release): "https://esm.sh/dogfen" else: "dist/dogfen.js"
   oneLiner =
-    fmt"""<!doctype html><script src="{sourceUrl}"></script><textarea style="display:none;">"""
+    fmt"""<!doctype html><script type=module src={sourceUrl}></script><textarea style=display:none>"""
   buttonClass* =
     "flex items-center justify-center w-10 h-10 bg-blue-400 rounded-md hover:bg-blue-500 transition-colors border-none cursor-pointer"
   newMd = staticRead("static/new.md")
@@ -56,7 +56,7 @@ proc downloadPageAction(html: string, filename: string) =
 proc downloadPageOffline() {.async.} =
   let response = await fetch(cstring"https://unpkg.dev/dogfen")
   let scriptSrc = await response.text()
-  let fullHtml = "<!DOCTYPE html><html><body>" & "\n<script>" & $scriptSrc & "</script>\n" &
+  let fullHtml = "<!DOCTYPE html><html><body>" & "\n<script type=module>" & $scriptSrc & "</script>\n" &
     """<textarea style="display:none;">""" &  $getcurrentDoc()
   downloadPageAction(fullHtml, getFileName())
 

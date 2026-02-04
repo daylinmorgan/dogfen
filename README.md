@@ -5,7 +5,7 @@
 Add the below oneliner to an existing markdown document:
 
 ```html
-<!DOCTYPE html><html><body><script src="https://unpkg.dev/dogfen"></script><textarea style="display:none;">
+<!doctype html><script type=module src=https://esm.sh/dogfen></script><textarea style=display:none>
 
 # Header 1
 
@@ -41,10 +41,8 @@ Note: this has the typical caveats of embedding data in a url, i.e. for big docu
 You could define a shell helper function to quickly convert a markdown doc to a dogfen doc.
 
 ```sh
-md2dogfen() {
-  printf "%s\n\n%s\n" \
-    '<!DOCTYPE html><script src=https://unpkg.dev/dogfen></script><textarea style=display:none>' \
-    "$(< "$1")"
+dogfen() {
+  (echo '<!doctype html><script type=module src=https://esm.sh/dogfen></script><textarea style=display:none>'; cat "$1")
 }
 ```
 
