@@ -3,6 +3,7 @@ import ./deps/[unocss, markedjs, codemirror, lz_string, dompurify]
 import ./lib
 
 const newMd = staticRead("static/new.md")
+const sourceUrl = when defined(katex): "https://esm.sh/dogfen/katex" else: "https://esm.sh/dogfen"
 var newHtml : cstring
 
 type Config = object
@@ -58,7 +59,7 @@ proc downloadPageAction(html: string, filename: string) =
   document.body.removeChild(link)
   revokeObjectURL(url)
 
-proc dogFenLine(scriptTag: string = "<script type=module src=https://esm.sh/dogfen></script>"): string =
+proc dogFenLine(scriptTag: string = ("<script type=module src=" & sourceUrl & "></script>")): string =
   # using s.add for large string was causing range error?
   var s = "<!doctype html>" & scriptTag & "<textarea style=display:none"
   if isCodeMode():
@@ -100,8 +101,9 @@ proc copyInputBoxToClipboard(e: Event) =
     (_: Error) => (e.target.Element.setHtmlTimeout("copy failed!")),
   )
 
+const shareUrl = when defined(katex): "https://dogfen.dayl.in/katex" else: "https://dogfen.dayl.in"
 proc copyShareUrlToClipboard(e: Event) =
-  var uri = parseUri("https://dogfen.dayl.in") ? {"raw": "true"}
+  var uri = parseUri(shareUrl) ? {"raw": "true"}
   uri.anchor = $compressToEncodedURIComponent(getCurrentDoc())
   discard navigator.clipboardWriteText(cstring($uri)).then(
     () => e.target.Element.setHtmlTimeout("copied!"),
@@ -109,7 +111,10 @@ proc copyShareUrlToClipboard(e: Event) =
   )
 
 proc copyShareUrlToClipboardReadOnly(e: Event) =
-  var uri = parseUri("https://dogfen.dayl.in") ? {"raw": "true", "read-only": ""}
+  let shareUrl =
+    when defined(katex): "https://dogfen.dayl.in/katex/readonly"
+    else: "https://dogfen.dayl.in/readonly"
+  var uri = parseUri(shareUrl) ? {"raw": "true", "read-only": ""}
   uri.anchor = $compressToEncodedURIComponent(getCurrentDoc())
   discard navigator.clipboardWriteText(cstring($uri)).then(
     () => e.target.Element.setHtmlTimeout("copied!"),

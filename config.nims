@@ -24,6 +24,7 @@ task buildAll, "build all versions":
   build(bundle = "min")
   build("-d:readOnly", "read")
   build("-d:katex", "katex")
+  build("-d:katex -d:readOnly", "katex-read")
 
 
 # begin Nimble config (version 2)

@@ -18,6 +18,9 @@
     "./katex": {
       "default": "dist/dogfen.katex.min.js"
     },
+    "./katex/readonly": {
+      "default": "dist/dogfen.katex.readonly.min.js"
+    },
     ".": {
       "browser": "dist/dogfen.min.js",
       "unpkg": "dist/dogfen.min.js",
@@ -29,6 +32,7 @@
     "watch": "nim watch",
     "bundle:serve": "bun run bundle --watch --servedir=.",
     "build": "nim buildALl",
+    "bundle:katex-read": "bun run bundle --minify --outfile=dist/dogfen.katex.readonly.min.js",
     "bundle:katex": "bun run bundle --minify --outfile=dist/dogfen.katex.min.js",
     "bundle:min": "bun run bundle --minify --outfile=dist/dogfen.min.js",
     "bundle:read": "bun run bundle --minify --outfile=dist/dogfen.readonly.min.js",
