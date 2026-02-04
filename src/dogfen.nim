@@ -23,7 +23,7 @@ proc loadingAnimation*: Element =
       Img.new(class = "h-10 inner-logo").withAttr("src", getDataUri(scroll, "image/svg+xml")))
     )
 
-proc toggleEditor() {.exportc} =
+proc toggleEditor() {.exportc.} =
   document
     .getElementbyId("editor")
     .classList
@@ -355,7 +355,7 @@ proc setStyles() =
 proc startApp() =
   setViewPort()
   setStyles()
-  let readyState {.importjs: "document.readyState"}: cstring
+  let readyState {.importjs: "document.readyState".}: cstring
   if readyState == "loading":
     # Still parsing, wait for the event
     document.addEventListener("DOMContentLoaded", (_: Event) => (discard setupDocument()))
