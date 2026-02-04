@@ -29,7 +29,7 @@
     "watch": "nim watch",
     "bundle:serve": "bun run bundle --watch --servedir=.",
     "build": "nim buildALl",
-    "bundle:katex": "bun run bundle --minify --outfile=dist/dogfen.katex.nim.js",
+    "bundle:katex": "bun run bundle --minify --outfile=dist/dogfen.katex.min.js",
     "bundle:min": "bun run bundle --minify --outfile=dist/dogfen.min.js",
     "bundle:read": "bun run bundle --minify --outfile=dist/dogfen.readonly.min.js",
     "bundle": "esbuild src/dogfen.js --bundle --external:https://* --outfile=dist/dogfen.js --format=esm"

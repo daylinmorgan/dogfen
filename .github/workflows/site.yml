@@ -14,8 +14,8 @@ jobs:
 
     - name: build index.html
       run: |
-        sed "s|dist/dogfen\.js|https://unpkg.dev/dogfen|" demo.html > site/demo.html
-        echo '<!DOCTYPE html><script src=https://unpkg.dev/dogfen></script><textarea style=display:none>' > site/index.html
+        sed "s|dist/dogfen\.js|https://esm.sh/dogfen|" demo.html > site/demo.html
+        echo '<!DOCTYPE html><script type=module src=https://esm.sh/dogfen></script><textarea style=display:none>' > site/index.html
         cat README.md >> site/index.html
 
     - name: Upload artifacts
