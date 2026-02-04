@@ -32,9 +32,19 @@ Note: this link also includes the `read-only` query parameter.
 
 It's also possible to generate shareable urls:
 
-Example: <https://dogfen.dayl.in?read-only&raw#BYUwNmD2AEDukCcwBMg>
+Example: <https://dogfen.dayl.in?raw#BYUwNmD2AEDukCcwBMg>
 
 Note: this has the typical caveats of embedding data in a url, i.e. for big documents host the data at a public link and use `?href=`
+
+## alternative versions
+
+### katex
+
+If you need support for katex rendering append `/katex` to the src url to get a bundle with katex
+
+### readonly
+
+If you are using read-only mode and won't need the editor append `/readonly` to the src url to get a bundle without codemirror
 
 ## converter
 
@@ -47,7 +57,7 @@ dogfen() {
 ```
 
 ```sh
-md2dogfen README.md > README.dogfen.html
+dogfen README.md > README.dogfen.html
 ```
 
 ## related projects
