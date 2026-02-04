@@ -1,5 +1,4 @@
-import std/[jsffi]
-import ./esm
+import ../lib
 
 type
   UnocssTransformer = ref object

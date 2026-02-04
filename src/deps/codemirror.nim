@@ -1,5 +1,4 @@
-import std/[dom, jsffi]
-import ./esm
+import ../lib
 
 esm codemirror, { basicSetup }
 esm "@codemirror/lang-markdown", { markdown }

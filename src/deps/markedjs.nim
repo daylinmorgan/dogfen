@@ -1,5 +1,5 @@
-import std/[asyncjs, jsffi, strutils, sequtils]
-import ./[esm, marked_highlight]
+import ./[marked_highlight]
+import ../lib
 
 type
   MarkedRenderer = object

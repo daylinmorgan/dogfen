@@ -1,22 +1,29 @@
+import std/[strformat]
+
+proc tryExec(cmd: string) =
+  echo "cmd: " & cmd
+  let (output, code) = gorgeEx cmd
+  if code != 0 or defined(verbose):
+    echo output
+  if code != 0:
+    quit 1
+
+proc build(flags: string = "", bundle: string = "") =
+  tryExec fmt"nim js -d:release {flags} src/dogfen.nim"
+  tryExec "bun run bundle" & (if bundle != "": ":" & bundle else: "")
+
+task build, "build app":
+  const flags {.strdefine.} = ""
+  exec fmt"nim js {flags} src/dogfen.nim"
+
 task watch, "watch src and run build":
   exec "watchexec -w src -- nim build"
 
-task build, "build app":
-  when defined(release) or defined(minify):
-    when defined(readOnly):
-      selfExec "js -d:release -d:readOnly src/dogfen.nim"
-    else:
-      selfExec "js -d:release src/dogfen.nim"
-  else:
-    selfExec "js src/dogfen.nim"
-
-  when not defined(minify):
-    exec "bun run bundle"
-  else:
-    when defined(readOnly):
-      exec "bun run bundle:read"
-    else:
-      exec "bun run bundle:min"
+task buildAll, "build all versions":
+  build()
+  build(bundle = "min")
+  build("-d:readOnly", "read")
+  build("-d:katex", "katex")
 
 
 # begin Nimble config (version 2)

@@ -1,6 +1,6 @@
-import std/[dom, jsffi, strformat, sugar, uri, jsfetch, asyncjs, strutils, jsconsole]
+import std/[strformat, uri, jsfetch]
 import ./deps/[unocss, markedjs, codemirror, lz_string, dompurify]
-import ./lib/[html, icons]
+import ./lib
 
 const
   sourceURL =
@@ -167,17 +167,18 @@ proc renderDoc(doc: cstring = "") {.async, exportc.} =
     .getElementbyId("preview")
     .innerHtml = html
 
-let previewClasses= (
-  "prose overflow-auto hyphens-auto " &
-  " font-sans " &
-  " overflow-auto hyphens-auto " &
-  " [&_p>code]:shadow" &
-  " [&_div.markdown-alert]:my-5 " &
-  " [&_div.markdown-alert_p]:m-1 " &
-  variant("prose-table", "table-auto border border-1 border-solid border-collapse") &
-  variant("prose-td", "p-2 border border-solid border-1") &
-  variant("prose-th", "p-2 border border-solid border-1")
-)
+let previewClasses= @[
+
+  "prose overflow-auto hyphens-auto",
+  "font-sans",
+  "overflow-auto hyphens-auto",
+  "[&_p>code]:shadow",
+  "[&_div.markdown-alert]:my-5",
+  "[&_div.markdown-alert_p]:m-1",
+  variant("prose-table", "table-auto border border-1 border-solid border-collapse"),
+  variant("prose-td", "p-2 border border-solid border-1"),
+  variant("prose-th", "p-2 border border-solid border-1"),
+].join(" ").cstring
 
 
 type Config = object

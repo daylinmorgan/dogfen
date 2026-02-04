@@ -1,5 +1,5 @@
-import std/[sequtils, strutils, tables, asyncjs, jsconsole, sugar, jsffi, json]
-import ./esm
+import std/[tables, json]
+import ../lib
 
 
 const baseUrl = "https://esm.sh/"

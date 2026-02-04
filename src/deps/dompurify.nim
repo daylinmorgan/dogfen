@@ -1,4 +1,4 @@
-import ./esm
+import ../lib
 
 esm dompurify, DOMPurify
 
