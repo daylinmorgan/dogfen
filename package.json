@@ -1,8 +1,11 @@
 {
   "name": "dogfen",
   "description": "self-rendering ~markdown~ html documents",
-  "repository": "github:daylinmorgan/dogfen",
   "version": "2026.1018.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daylinmorgan/dogfen.git"
+  },
   "license": "MIT",
   "files": [
     "dist/dogfen.js",
