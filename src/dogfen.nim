@@ -58,21 +58,18 @@ proc downloadPageAction(html: string, filename: string) =
   document.body.removeChild(link)
   revokeObjectURL(url)
 
-proc dogFenLine(script: string = "<script type=module src=https://esm.sh/dogfen></script>"): string =
-  var s: string
-  s.add "<!doctypt html>"
-  s.add script
-  s.add "<textarea style=display:none"
+proc dogFenLine(scriptTag: string = "<script type=module src=https://esm.sh/dogfen></script>"): string =
+  # using s.add for large string was causing range error?
+  var s = "<!doctype html>" & scriptTag & "<textarea style=display:none"
   if isCodeMode():
     s.add " code=" & cfg.code & ">"
-  s.add ">"
-  return s
+  return s & ">"
 
 proc downloadPageOffline() {.async.} =
   let response = await fetch(cstring"https://unpkg.dev/dogfen")
-  let scriptSrc = await response.text()
+  let scriptSrc = $(await response.text())
   let fullHtml =
-    dogFenLine("\n<script type=module>" & $scriptSrc & "</script>\n") & $getCurrentDoc()
+    dogFenLine("\n<script type=module>" & scriptSrc & "</script>\n") & $getCurrentDoc()
   downloadPageAction(fullHtml, getFileName())
 
 proc downloadPage() =
