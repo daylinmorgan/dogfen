@@ -30,7 +30,7 @@ let typoOpts =
     cssExtend: js{
       "hr": js{
         "height": cstring"1px",
-        "background": cstring"black",
+        "border-color": cstring"black",
       },
     }
   )
