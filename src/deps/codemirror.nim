@@ -34,6 +34,26 @@ new EditorView({
 """
 .}
 
+
+proc newEditorViewCode*(
+  doc: cstring, parent: Element
+): EditorView {.
+  importjs:
+    """
+new EditorView({
+  doc: #,
+  parent: #,
+  extensions: [
+    basicSetup,
+    EditorView.updateListener.of(async function(v) {
+      if (v.docChanged) {await renderDoc(v.state.doc.toString())}
+      })
+  ]
+})
+"""
+.}
+
+
 var editor* {.exportc.}: EditorView
 
 proc toString*(doc: Text): cstring {.importcpp.}

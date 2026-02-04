@@ -13,6 +13,19 @@ const
 
 var newHtml : cstring
 
+type Config = object
+  href: string
+  raw: cstring
+  readOnly: bool
+  lang: cstring
+  code: cstring
+
+var cfg: Config
+
+proc isCodeMode: bool =
+  if cfg.code != nil:
+    result = cfg.code != ""
+
 proc loadingAnimation*: Element =
   Div.new().with:
     id "loading"
@@ -53,15 +66,25 @@ proc downloadPageAction(html: string, filename: string) =
   document.body.removeChild(link)
   revokeObjectURL(url)
 
+proc dogFenLine(script: string = "<script type=module src=https://esm.sh/dogfen></script>"): string =
+  var s: string
+  s.add "<!doctypt html>"
+  s.add script
+  s.add "<textarea style=display:none"
+  if isCodeMode():
+    s.add " code=" & cfg.code & ">"
+  s.add ">"
+  return s
+
 proc downloadPageOffline() {.async.} =
   let response = await fetch(cstring"https://unpkg.dev/dogfen")
   let scriptSrc = await response.text()
-  let fullHtml = "<!DOCTYPE html><html><body>" & "\n<script type=module>" & $scriptSrc & "</script>\n" &
-    """<textarea style="display:none;">""" &  $getcurrentDoc()
+  let fullHtml =
+    dogFenLine("\n<script type=module>" & $scriptSrc & "</script>\n") & $getCurrentDoc()
   downloadPageAction(fullHtml, getFileName())
 
 proc downloadPage() =
-  let fullHtml = oneLiner & $getCurrentDoc()
+  let fullHtml = dogFenLine() & $getCurrentDoc()
   downloadPageAction(fullHtml, getFileName())
 
 var menuOpen: bool
@@ -160,7 +183,11 @@ proc newHeader(): Element =
 proc renderDoc(doc: cstring = "") {.async, exportc.} =
   var html = newHtml
   if doc != "":
-    let parseMarked = await(marked.parse(doc))
+    let parseMarked =
+      if not isCodeMode():
+        await(marked.parse(doc))
+      else:
+        await(marked.parse(cstring(fmt("```{cfg.code}\n{doc}\n```"))))
     html = sanitize(parseMarked)
 
   document
@@ -168,7 +195,6 @@ proc renderDoc(doc: cstring = "") {.async, exportc.} =
     .innerHtml = html
 
 let previewClasses= @[
-
   "prose overflow-auto hyphens-auto",
   "font-sans",
   "overflow-auto hyphens-auto",
@@ -179,20 +205,6 @@ let previewClasses= @[
   variant("prose-td", "p-2 border border-solid border-1"),
   variant("prose-th", "p-2 border border-solid border-1"),
 ].join(" ").cstring
-
-
-type Config = object
-  href: string
-  raw: cstring
-  readOnly: bool
-  lang: cstring
-  code: cstring
-
-var cfg: Config
-
-proc isCodeMode: bool =
-  if cfg.code != nil:
-    result = cfg.code != ""
 
 proc renderError(msg: string): cstring =
   const pre = """<span class="bg-red block text-5xl text-black"> DOGFEN ERROR </span>"""
@@ -236,7 +248,7 @@ proc getFromUri(uri: string): Future[cstring] {.async.} =
   result = cs
 
 # a debug func to test network latency
-proc promiseWait(): Future[void] {.async,importjs: """ new Promise(resolve => setTimeout(resolve, 5000)) """.}
+proc promiseWait(): Future[void] {.used,async,importjs: """ new Promise(resolve => setTimeout(resolve, 5000)) """.}
 
 proc extractTitle(doc: cstring): string =
   for l in ($doc).splitLines():
@@ -275,9 +287,9 @@ proc getStart(cfg: var Config): Future[cstring] {.async.} =
       cfg.lang = lang
     start = textarea.value
 
-  # TODO: make syntax highlight mode more sophisticated
-  if not cfg.code.isNull:
-    start = "```" & cfg.code & "\n" & start & "\n```"
+  # # TODO: make syntax highlight mode more sophisticated
+  # if not cfg.code.isNull:
+  #   start = "```" & cfg.code & "\n" & start & "\n```"
 
   assert not start.isNil # use returns or set a default error string
   result = start
@@ -306,12 +318,17 @@ proc setupDocument() {.async.} =
   setTitle start
 
   when not defined(readOnly):
-    editor = newEditorView(start, editorDom)
+    editor =
+      if isCodeMode(): newEditorViewCode(start, editorDom)
+      else: newEditorView(start, editorDom)
 
   let preview =
     Div.new().with:
       id "preview"
-      class "lg:max-w-65ch max-w-90% p-2 border border-2 border-solid rounded shadow-lg w-65ch lg:min-h-50 lg:min-w-40% " & previewClasses
+      class(
+        if isCodeMode(): "max-w-95% shadow-lg overflow-auto".cstring
+        else: "lg:max-w-65ch max-w-90% p-2 border border-2 border-solid rounded shadow-lg w-65ch lg:min-h-50 lg:min-w-40% " & previewClasses
+      )
       attr "lang", cfg.lang
 
   let doc=
