@@ -52,6 +52,7 @@ proc initUnocss* =
           ))
         ],
         shortcuts: js{
+          "live": "h-3 w-3 rounded-full bg-red-600 animate-pulse".cstring,
           "btn": "flex items-center justify-center p-1 bg-blue-400 rounded-md hover:bg-blue-500 transition-colors border-none cursor-pointer text-black".cstring,
           "btn-small": "btn w-10 h-10".cstring,
           # handle at the renderer level?

@@ -4,7 +4,8 @@ import ./lib
 
 const newMd = staticRead("static/new.md")
 const sourceUrl = when defined(katex): "https://esm.sh/dogfen/katex" else: "https://esm.sh/dogfen"
-var newHtml : cstring
+let version =  require("../package.json").version.to(cstring)
+var newHtml: cstring
 
 type Config = object
   href: string
@@ -12,6 +13,7 @@ type Config = object
   readOnly: bool
   lang: cstring
   code: cstring
+  live: bool
 
 var cfg: Config
 
@@ -102,6 +104,7 @@ proc copyInputBoxToClipboard(e: Event) =
   )
 
 const shareUrl = when defined(katex): "https://dogfen.dayl.in/katex" else: "https://dogfen.dayl.in"
+
 proc copyShareUrlToClipboard(e: Event) =
   var uri = parseUri(shareUrl) ? {"raw": "true"}
   uri.anchor = $compressToEncodedURIComponent(getCurrentDoc())
@@ -140,7 +143,7 @@ proc menuList: Element =
   var list =
     Ul.new().with:
       class "list-none flex flex-col min-w-60 pl-0"
-      children: @[
+      children(
         newMenuItem("toggle editor", (_: Event) => toggleEditor()),
         newMenuItem("toggle preview", (_: Event) => (document.getElementById("preview").classList.toggle("hidden"))),
         divider(),
@@ -156,7 +159,7 @@ proc menuList: Element =
         newMenuItem("share url", copyShareUrlToClipboard),
         newMenuItem("share url (read-only)", copyShareUrlToClipboardReadOnly),
         newMenuItem("copy markdown", copyInputBoxToClipboard),
-      ]
+      )
 
   Div.new().with:
     id "menu"
@@ -168,20 +171,24 @@ proc menuElement: Element =
     class "relative inline-block"
     children menuBtn(), menuList()
 
+proc headerPieces: seq[Element] =
+  result.add @[
+    Img.new(class = "h-10").withAttr("src", getDataUri(scroll, "image/svg+xml")),
+    H1.new(class = "text-lg font-black", textContent = "dogfen"),
+  ]
+  if cfg.live:
+    result.add Div.new(class="mx-2 live")
+  result.add @[
+    Div.new(class = "flex-grow"), # spacer element
+    Div.new(class = "flex flex-row gap-5").withChildren(
+      editBtnElement(), menuElement()
+    )
+  ]
 
 proc newHeader(): Element =
   Div.new().with:
     class "flex flex-row mx-5 text-md m-2 items-center"
-    children(
-      Img.new(class = "h-10").withAttr("src", getDataUri(scroll, "image/svg+xml")),
-      H1.new(class = "text-lg font-black", textContent = "dogfen"),
-      Div.new(class = "flex-grow"), # spacer element
-      Div.new(class = "flex flex-row gap-5").withChildren(
-        editBtnElement(),
-        menuElement()
-      )
-    )
-
+    children headerPieces()
 
 proc renderDoc(doc: cstring = "") {.async, exportc.} =
   var html = newHtml
@@ -270,25 +277,63 @@ proc setTitle(start: cstring) =
   # use raw mode info here somehow?
   document.title = cstring(parts.join(" - "))
 
+var lastValue: cstring
+
+proc maybeReload() {.async.} =
+  let txt = await fetch(window.location.href).then((r: Response) => r.text())
+  let doc = newDomParser().parseFromString(txt, "text/html");
+  let textarea = doc.querySelector("textarea")
+  let currentValue = if textarea != nil: textarea.textContent else: "".cstring
+  if lastValue != "" and lastValue != currentValue:
+    console.log("reloading")
+    await renderDoc(currentValue)
+  lastValue = currentValue
+
+proc setInterval*(action: proc() {.async.}; ms: int): Interval {.importc, nodecl.}
+
+proc liveReload(intervalStr: cstring) =
+  try:
+    let interval =
+      if intervalStr == "": 2500
+      else: int(parseFloat($intervalStr) * 1000)
+    console.log("staring live reload (refresh rate:", interval, "ms)")
+    cfg.live = true
+    discard setInterval(maybeReload, interval)
+  except:
+    console.error("failed to parse 'live' attibute as float: ", intervalStr)
+
+proc getStartFromTextArea(): cstring =
+  let textarea = document.querySelector("textarea")
+  if textarea == nil:
+    document.body.innerHtml = ""
+    return renderError(
+      """expected a textarea element... see the [README](https://dogfen.dayl.in) for ways to specify content"""
+    )
+
+  if not textarea.getAttribute("read-only").isNull:
+    cfg.readOnly = true
+  if not textarea.getAttribute("code").isNull:
+    cfg.code = textarea.getAttribute("code")
+  let lang = textarea.getAttribute("lang")
+  if not lang.isNull:
+    cfg.lang = lang
+
+  result = textarea.value
+  let live = textarea.getAttribute("live")
+  if live != nil:
+    lastValue = result
+    liveReload(live)
+
 proc getStart(cfg: var Config): Future[cstring] {.async.} =
   await initMarked()
-  let textarea = document.querySelector("textarea").withId("inputbox")
 
-  # what to do if a textarea doesn't exist.. is that an error?
   var start: cstring
   if not cfg.raw.isNull:
     start = cfg.raw
   elif cfg.href != "":
     start = await getFromUri(cfg.href)
   else:
-    if not textarea.getAttribute("read-only").isNull:
-      cfg.readOnly = true
-    if not textarea.getAttribute("code").isNull:
-      cfg.code = textarea.getAttribute("code")
-    let lang = textarea.getAttribute("lang")
-    if not lang.isNull:
-      cfg.lang = lang
-    start = textarea.value
+    start = getStartFromTextArea()
 
   assert not start.isNil # use returns or set a default error string
   result = start
@@ -297,6 +342,19 @@ proc getStart(cfg: var Config): Future[cstring] {.async.} =
 #   let keyEvent = KeyboardEvent(e)
 #   if keyEvent.shiftKey and keyEvent.key == "E":
 #     toggleEditor()
+
+proc newFooter: Element =
+  result =
+    Div.new().with:
+      class "mx-auto text-xs p-5"
+      children(
+        text("self-rendering document powered by "),
+        A.new(
+          class="underline decoration-dotted",
+          textContent = "dogfen"
+        ).withAttr("href", "https://dogfen.dayl.in>"),
+        Span.new(class="text-slate-400", textContent = "@" & version)
+      )
 
 proc setupDocument() {.async.} =
   newHtml = await marked.parse(newMd)
@@ -330,29 +388,27 @@ proc setupDocument() {.async.} =
       )
       attr "lang", cfg.lang
 
-  let doc=
+  let doc =
     Div.new().with:
       id "doc"
       class "h-full flex flex-col items-center lg:items-start lg:flex-row gap-5 mx-auto lg:justify-center w-full px-2"
       children editorDom, preview
 
-  let footer =
-    Div.new().with:
-      class "mx-auto text-xs p-5"
-      html """self-rendering document powered by <a class="underline decoration-dotted" href=https://dogfen.dayl.in>dogfen</a>"""
-
-  let header = newHeader()
-
   if cfg.readOnly:
-    header.classList.toggle("hidden")
-    header.classList.toggle("flex")
     doc.classList.toggle("mt-5")
 
   let content = Div.new().with:
     class "min-h-100vh flex flex-col bg-gray-100 w-full"
     attr "un-cloak", ""
-    children header, doc, footer
 
+  if cfg.readOnly and cfg.live:
+    content.appendChild(
+      Div.new(class="fixed top-1 left-1 live")
+    )
+  if not cfg.readOnly:
+    content.appendChild(newHeader())
+  content.appendChild(doc)
+  content.appendChild(newFooter())
   document.body.appendChild(content)
 
   await renderDoc(start)
@@ -382,6 +438,5 @@ proc startApp() =
   else:
     discard setupDocument() # DOMContentLoaded already fired, just run setup
   echo "doc powered by dogfen: https://github.com/daylinmorgan/dogfen"
-
 
 startApp()

@@ -50,16 +50,22 @@ proc newElement*(identifier: cstring, id: cstring ="", class: cstring = "", inne
   if innerHtml != "":
     result.innerHtml = innerHtml
 
-# NOTE: this only appends children
+proc withChildren*(e: Element, children: varargs[Node]): Element =
+  result = e
+  for c in children:
+    result.appendChild(c)
+
 proc withChildren*(e: Element, children: varargs[Element]): Element =
   result = e
   for c in children:
     result.appendChild(c)
 
+
 type
   ElementKind* = enum
-    H1, Div, Ul, Li, Span, Button, A, Link, Img
+    H1, Div, Ul, Li, Span, Button, A, Link, Img, P
 
+proc text*(s: cstring): Node = document.createTextNode(s)
 proc new*(ek: ElementKind, id: cstring = "", class: cstring = "", innerHtml: cstring = "", textContent: cstring = ""): Element =
   result = document.createElement(($ek).toLowerAscii().cstring)
   if id != "":
