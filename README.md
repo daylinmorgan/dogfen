@@ -20,21 +20,46 @@ or start writing a [new](https://dogfen.dayl.in/new) one!
 
 See a [demo](https://dogfen.dayl.in/demo) of (some) of the supported syntax.
 
-## fetch from a url
+## Specifying Content
 
-Use a query parameter to override any existing textarea with raw text data fetched from a url:
+### local file
 
-Example: <https://dogfen.dayl.in/?read-only&href=https://raw.githubusercontent.com/daylinmorgan/dogfen/refs/heads/main/README.md>
+As shown above to render a document you should prepend it with the following line, taking care to ensure the content is in the `<textarea>` and open in a browser:
 
-Note: this link also includes the `read-only` query parameter.
+```html
+<!doctype html><script type=module src=https://esm.sh/dogfen></script><textarea style=display:none>
+```
 
-## shareable url
+If you want to modify the content using a different editor but still preview in your browser add the `live` attribute to the `<textarea>` (optionally, you can provide a value for the attribute in seconds to set the polling rate, by default it's 2.5s):
+
+```html
+<!doctype html><script type=module src=https://esm.sh/dogfen></script><textarea style=display:none live read-only>
+```
+
+### fetch from href
+
+Use a query parameter to set the content with the raw text data fetched from a url:
+
+Example: <https://dogfen.dayl.in/read-only?href=https://raw.githubusercontent.com/daylinmorgan/dogfen/refs/heads/main/README.md>
+
+> [!Note]
+> This base url (<https://dogfen.dayl.in/read-only>) loads a lighter bundle (without codemirror), you could also specifying this with a query parameter (`?read-only`)
+
+
+### shareable url
 
 It's also possible to generate shareable urls:
 
 Example: <https://dogfen.dayl.in?raw#BYUwNmD2AEDukCcwBMg>
 
-Note: this has the typical caveats of embedding data in a url, i.e. for big documents host the data at a public link and use `?href=`
+> [!NOTE]
+> This has the typical caveats of embedding data in a url, i.e. for big documents host the data at a public link and use `?href=`
+
+### code
+
+If you wish to share a code snippet rather than markdown you may use the `code={lang}` attribute or query parameter to treat the entire document as a code snippet
+
+Example: <https://dogfen.dayl.in/read-only?code=nim&href=https://raw.githubusercontent.com/daylinmorgan/dogfen/refs/heads/main/src/dogfen.nim>
 
 ## alternative versions
 
@@ -44,7 +69,7 @@ If you need support for katex rendering append `/katex` to the src url to get a 
 
 ### readonly
 
-If you are using read-only mode and won't need the editor append `/readonly` to the src url to get a bundle without codemirror
+If you are using read-only mode and won't need the editor append `/read-only` (or `/katex/read-only`) to the src url to get a bundle without codemirror
 
 ## converter
 
