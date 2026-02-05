@@ -52,7 +52,8 @@ You could define a shell helper function to quickly convert a markdown doc to a 
 
 ```sh
 dogfen() {
-  (echo '<!doctype html><script type=module src=https://esm.sh/dogfen></script><textarea style=display:none>'; cat "$1")
+  echo '<!doctype html><script type=module src=https://esm.sh/dogfen></script><textarea style=display:none>'
+  [ -z "$1"] && cat "$1"
 }
 ```
 
