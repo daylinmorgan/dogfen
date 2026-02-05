@@ -13,13 +13,13 @@
   "main": "dist/dogfen.js",
   "browser": "dist/dogfen.min.js",
   "exports": {
-    "./readonly": {
+    "./read-only": {
       "default": "dist/dogfen.readonly.min.js"
     },
     "./katex": {
       "default": "dist/dogfen.katex.min.js"
     },
-    "./katex/readonly": {
+    "./katex/read-only": {
       "default": "dist/dogfen.katex.readonly.min.js"
     },
     ".": {
@@ -32,12 +32,12 @@
     "dev": "concurrently npm:watch npm:bundle:serve",
     "watch": "nim watch",
     "bundle:serve": "bun run bundle --watch --servedir=.",
-    "build": "nim buildALl",
+    "build": "nim buildall",
     "bundle:katex-read": "bun run bundle --minify --outfile=dist/dogfen.katex.readonly.min.js",
     "bundle:katex": "bun run bundle --minify --outfile=dist/dogfen.katex.min.js",
     "bundle:min": "bun run bundle --minify --outfile=dist/dogfen.min.js",
     "bundle:read": "bun run bundle --minify --outfile=dist/dogfen.readonly.min.js",
-    "bundle": "esbuild src/dogfen.js --bundle --external:https://* --outfile=dist/dogfen.js --format=esm"
+    "bundle": "esbuild src/dogfen.js --bundle --external:https://* --platform=browser --outfile=dist/dogfen.js --format=esm"
   },
   "devDependencies": {
     "@codemirror/lang-markdown": "^6.5.0",

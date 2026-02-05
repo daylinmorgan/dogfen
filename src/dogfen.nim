@@ -112,8 +112,8 @@ proc copyShareUrlToClipboard(e: Event) =
 
 proc copyShareUrlToClipboardReadOnly(e: Event) =
   let shareUrl =
-    when defined(katex): "https://dogfen.dayl.in/katex/readonly"
-    else: "https://dogfen.dayl.in/readonly"
+    when defined(katex): "https://dogfen.dayl.in/katex/read-only"
+    else: "https://dogfen.dayl.in/read-only"
   var uri = parseUri(shareUrl) ? {"raw": "true", "read-only": ""}
   uri.anchor = $compressToEncodedURIComponent(getCurrentDoc())
   discard navigator.clipboardWriteText(cstring($uri)).then(
