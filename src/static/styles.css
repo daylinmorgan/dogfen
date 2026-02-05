@@ -43,20 +43,25 @@
   border-radius: 50%;
   border: 6px solid #1d7526;
   border-color: #1d7526 transparent #1d7526 transparent;
-  animation: lds-dual-ring 1.2s linear infinite;
+  animation: spin 1.25s linear infinite;
 
   /* Absolute position ensures the ring spins around the center point 
      without pushing the image out of the way */
   position: absolute;
 }
 
-@keyframes lds-dual-ring {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+.inner-logo {
+    animation: spin 2.5s linear infinite;
+}
+
+/* Define the keyframes for the animation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 #loading:not([un-cloak]) {
@@ -66,3 +71,5 @@
 [un-cloak]:not(#loading) {
   display: none;
 }
+
+
