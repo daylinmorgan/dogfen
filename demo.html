@@ -6,7 +6,6 @@ Markdown parsing is handled by [markedjs](https://marked.js.org) and should be *
 
 ## Lists
 
-
 1. item one
    - [ ] incomplete task
    - [x] complete task
@@ -69,17 +68,19 @@ for o in opcodes:
 Insert a footnote [^1].
 
 
-## Unocss-powered styling
+## Emojis
 
-### Emojis/Icons
-
-Inline emojis are converted to [openmoji](https://openmoji.org)
+Inline emojis are converted to unicode based on the shortcodes used by Github.
 
 For example:
 `:heart:` = :heart:
-`:smiling-face:` = :smiling-face:
+`:smile:` = :smile:
 
-To load icons besides openmoji (see <https://icones.js.org/> for all available icons) use an html snippet:
+## Unocss-powered styling
+
+### Icons
+
+To load other supported icons (see <https://icones.js.org/> for all available icons) use an html snippet:
 
 ```html
 <span class="i-logos-nim-lang"></span>
@@ -113,7 +114,6 @@ To load icons besides openmoji (see <https://icones.js.org/> for all available i
 
 > [!CAUTION]
 > Negative potential consequences of an action.
-
 
 ---
 

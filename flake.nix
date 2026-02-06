@@ -19,6 +19,7 @@
             bun
             watchexec
           ];
+          nativeBuildInputs = with pkgs; [ openssl];
         };
       });
     };

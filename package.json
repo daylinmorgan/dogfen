@@ -45,6 +45,7 @@
     "lz-string": "^1.5.0",
     "marked": "^16.4.2",
     "marked-alert": "^2.1.2",
+    "marked-emoji": "^2.0.2",
     "marked-footnote": "^1.4.0",
     "marked-highlight": "^2.2.3",
     "marked-katex-extension": "^5.1.6"

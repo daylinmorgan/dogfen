@@ -19,6 +19,7 @@
         "lz-string": "^1.5.0",
         "marked": "^16.4.2",
         "marked-alert": "^2.1.2",
+        "marked-emoji": "^2.0.2",
         "marked-footnote": "^1.4.0",
         "marked-highlight": "^2.2.3",
         "marked-katex-extension": "^5.1.6",
@@ -201,6 +202,8 @@
     "marked": ["marked@16.4.2", "", { "bin": { "marked": "bin/marked.js" } }, "sha512-TI3V8YYWvkVf3KJe1dRkpnjs68JUPyEa5vjKrp1XEEJUAOaQc+Qj+L1qWbPd0SJuAdQkFU0h73sXXqwDYxsiDA=="],
 
     "marked-alert": ["marked-alert@2.1.2", "", { "peerDependencies": { "marked": ">=7.0.0" } }, "sha512-EFNRZ08d8L/iEIPLTlQMDjvwIsj03gxWCczYTht6DCiHJIZhMk4NK5gtPY9UqAYb09eV5VGT+jD4lp396E0I+w=="],
+
+    "marked-emoji": ["marked-emoji@2.0.2", "", { "peerDependencies": { "marked": ">=4 <18" } }, "sha512-EFnLQn4wTyf+6pXfptkm83Z2mt3VbdEYedHBAsDpwUas5n5satsj42RGqAijBpmetgGerI1EzUuzf7NIccINUQ=="],
 
     "marked-footnote": ["marked-footnote@1.4.0", "", { "peerDependencies": { "marked": ">=7.0.0" } }, "sha512-fZTxAhI1TcLEs5UOjCfYfTHpyKGaWQevbxaGTEA68B51l7i87SctPFtHETYqPkEN0ka5opvy4Dy1l/yXVC+hmg=="],
 

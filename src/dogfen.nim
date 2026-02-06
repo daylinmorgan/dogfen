@@ -325,8 +325,6 @@ proc getStartFromTextArea(): cstring =
     liveReload(live)
 
 proc getStart(cfg: var Config): Future[cstring] {.async.} =
-  await initMarked()
-
   var start: cstring
   if not cfg.raw.isNull:
     start = cfg.raw
@@ -338,6 +336,11 @@ proc getStart(cfg: var Config): Future[cstring] {.async.} =
   assert not start.isNil # use returns or set a default error string
   result = start
 
+  let textarea = document.querySelector("textarea")
+  if textarea != nil:
+    textarea.remove()
+
+  await initMarked(start)
 # proc handleKeyboardShortcut(e: Event) =
 #   let keyEvent = KeyboardEvent(e)
 #   if keyEvent.shiftKey and keyEvent.key == "E":

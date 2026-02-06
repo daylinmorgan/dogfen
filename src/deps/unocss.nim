@@ -62,6 +62,7 @@ proc initUnocss* =
           "markdown-alert-important": "b-[#8957e5]".cstring,
           "markdown-alert-warning": "b-[#9e6a03]".cstring,
           "markdown-alert-caution": "b-[#da3633]".cstring,
+          "marked-emoji-img": "h-1.5em inline".cstring,
         },
       },
     }

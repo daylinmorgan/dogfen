@@ -1,95 +1,29 @@
 import std/[tables, json]
 import ../lib
 
-
 const baseUrl = "https://esm.sh/"
-const officialPath = "highlight.js@11.11.1/lib/languages/"
-const notsupported = [
-  "Toit", # 404
-  "TTCN-3", # not on npm or esm :/
-  "Zig", # highlighter doesn't appear to load correctly?
-]
-
-type Lang = object
-  name: string
-  aliases: seq[string]
-  path: string
-
-proc langToOfficialName(l: Lang): string =
-  const official = staticRead("../static/marked-highlight-official-languages.txt").splitLines()
-  case l.name
-  of "STEP Part 21": return "step21"
-  else:
-    for s in official:
-      if l.name.toLowerAscii() == s: return s
-      for a in l.aliases:
-        if a == s: return s
-
-  assert false, "failed to convert " & $l & " to official langugage"
-
-proc setEsmLink(l: var Lang, s: string)=
-  if s != "":
-    assert s.contains("https://github.com")
-    let ss = s.split("https://github.com/")
-    l.path = ss[1].strip().replace(")", "")
-
-proc init(T: typedesc[Lang], row: string): T =
-  let s = row.strip().split("|").mapIt(it.strip())
-  assert s.len > 4 # this table needs a good linting
-  result.name = s[1]
-  result.aliases = s[2].split(",").mapIt(it.strip())
-  if result.name notin notSupported:
-    result.setEsmLink(s[3])
-
-proc parseLanguagesDoc(): seq[Lang] =
-  let lines = staticRead("../static/highlightjs_SUPPORTED_LANGUAGES.md").splitLines
-  let begin = lines.find("<!-- LANGLIST -->")
-  let ending = lines.find("<!-- LANGLIST_END -->")
-  assert begin != 0
-  assert ending != 0
-  for row in lines[begin+3..<ending]:
-    let lang = Lang.init(row)
-    if lang.name notin notSupported:
-      result.add lang
 
 type
-  LanguageExtensions = ref object of JsRoot
-    official: JsObject # map name/alias to official path
-    unofficial: JsObject # map name/alias to repo
+  SupportedLanguages = object
+    paths: Table[string, string] # name -> esm.sh/{path}
+    names: Table[string, string] # alias -> name
 
-proc toOfficialLangs(langs: seq[Lang]): Table[string, string] =
-  for lang in langs:
-    if lang.path == "":
-      let path = langToOfficialName(lang)
-      result[lang.name.toLowerAscii()] = path
-      for a in lang.aliases:
-        result[a] = path
+const supportedLanguages =
+  staticRead("../static/supportedLanguages.json")
+    .parseJson().to(SupportedLanguages)
 
-proc toUnofficialLangs(langs: seq[Lang]): Table[string, string] =
-  for lang in langs:
-    if lang.path != "":
-      result[lang.name.toLowerAscii()] = lang.path
-      for a in lang.aliases:
-        result[a] = lang.path
-
-proc jsonParse(s: cstring): JsObject {.importjs: "JSON.parse(#)"}
-
-proc initSupportedLanguages(): LanguageExtensions =
-  const official = cstring($(%* parseLanguagesDoc().toOfficialLangs()))
-  const unofficial = cstring($(%* parseLanguagesDoc().toUnofficialLangs()))
-  LanguageExtensions(official: jsonParse(official), unofficial: jsonparse(unofficial))
-
-let supportedLanguages = initSupportedLanguages()
+proc getPath(langs: SupportedLanguages, name: string): string =
+  if name in langs.paths:
+    return langs.paths[name]
+  if name.toLowerAscii() in langs.names:
+    let aliased = langs.names[name.toLowerAscii()]
+    return getPath(langs, aliased)
 
 proc nameToImportLink(name: cstring): cstring =
-  var p: cstring
-  p = supportedLanguages.official[name].to(cstring)
-  if p != nil:
-    echo p
-    return baseUrl & officialPath & p
-  p = supportedLanguages.unofficial[name].to(cstring)
-  if p != nil:
-    return baseUrl & "gh/" & p
+  if name == nil: return
+  let path = supportedLanguages.getPath($name)
+  if path != "":
+    return cstring(baseUrl & path)
 
 type
   Hljs = ref object of JsRoot ## highlight js module
@@ -110,7 +44,6 @@ type
   HighlightResponse = object
     value: cstring
 
-
 # getLanguage is not actually a bool but I think because of JS truthy rules it's fine for now
 proc getLanguage(hljs: Hljs, lang: cstring): bool {.importcpp.}
 proc highlight(hljs: Hljs, code: cstring, o: JsObject): HighlightResponse {.importcpp.}
@@ -129,8 +62,7 @@ proc highlighter*(code: cstring, lang: cstring): Future[cstring] {.async.} =
       let link = nameToImportLink(lang)
       if link != nil:
         await loadLanguageDynamic(lang, link)
-          .then(() => (language = lang))
-          .catch((e: Error) => console.log("failed to dynamically load ", lang, "for highlight.js: ", e.message))
+          .then(() => (language = lang)) .catch((e: Error) => console.error("failed to dynamically load ", lang, "for highlight.js: ", e.message))
     return hljs.highlight(code, JsObject{language: language}).value
 
   return code
