@@ -67,7 +67,7 @@ Example: <https://dogfen.dayl.in/read-only?code=nim&href=https://raw.githubuserc
 
 If you need support for katex rendering append `/katex` to the src url to get a bundle with katex
 
-### readonly
+### read-only
 
 If you are using read-only mode and won't need the editor append `/read-only` (or `/katex/read-only`) to the src url to get a bundle without codemirror
 
