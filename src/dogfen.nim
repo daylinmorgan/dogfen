@@ -197,7 +197,8 @@ proc renderDoc(doc: cstring = "") {.async, exportc.} =
       if not isCodeMode():
         await(marked.parse(doc))
       else:
-        await(marked.parse(cstring(fmt("```{cfg.code}\n{doc}\n```"))))
+        let code = await(highlighter(doc, cfg.code))
+        """<pre class="p-5 overflow-auto">""" & code & "</pre>"
     html = sanitize(parseMarked)
 
   document
@@ -386,8 +387,8 @@ proc setupDocument() {.async.} =
     Div.new().with:
       id "preview"
       class(
-        if isCodeMode(): "lg:max-w-90% max-w-98% shadow-lg overflow-auto".cstring
-        else: "lg:max-w-65ch max-w-98% p-2 border border-2 border-solid rounded shadow-lg w-65ch lg:min-h-50 lg:min-w-40% " & previewClasses
+        if isCodeMode(): "lg:max-w-90% max-w-98% shadow-lg rounded-md overflow-auto rounded".cstring
+        else: "lg:max-w-65ch max-w-98% p-2 border border-2 border-solid rounded-md shadow-lg w-65ch lg:min-h-50 lg:min-w-40% " & previewClasses
       )
       attr "lang", cfg.lang
 

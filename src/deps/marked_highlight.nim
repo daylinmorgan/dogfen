@@ -64,7 +64,6 @@ proc highlighter*(code: cstring, lang: cstring): Future[cstring] {.async.} =
         await loadLanguageDynamic(lang, link)
           .then(() => (language = lang)) .catch((e: Error) => console.error("failed to dynamically load ", lang, "for highlight.js: ", e.message))
     return hljs.highlight(code, JsObject{language: language}).value
-
   return code
 
 

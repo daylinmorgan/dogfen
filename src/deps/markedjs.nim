@@ -69,3 +69,4 @@ proc initMarked*(start: cstring) {.async.} =
   marked.use(MarkedExtension(gfm: true, renderer: MarkedRenderer(code: renderCode)))
 
 
+export marked_highlight
