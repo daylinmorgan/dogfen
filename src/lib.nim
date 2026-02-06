@@ -1,5 +1,5 @@
-import std/[strutils, sequtils, jsconsole, sugar, jsffi, asyncjs]
-export strutils, sequtils, jsconsole, sugar, jsffi, asyncjs
+import std/[strutils, sequtils, jsconsole, sugar, jsffi, asyncjs, jsfetch]
+export strutils, sequtils, jsconsole, sugar, jsffi, asyncjs, jsfetch
 
 import ./lib/[html, icons, esm]
 

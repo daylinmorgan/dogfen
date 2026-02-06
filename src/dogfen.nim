@@ -1,4 +1,4 @@
-import std/[strformat, uri, jsfetch]
+import std/[uri]
 import ./deps/[unocss, markedjs, codemirror, lz_string, dompurify]
 import ./lib
 
