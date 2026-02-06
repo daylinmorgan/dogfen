@@ -173,7 +173,7 @@ proc menuElement: Element =
 
 proc headerPieces: seq[Element] =
   result.add @[
-    Img.new(class = "h-10").withAttr("src", getDataUri(scroll, "image/svg+xml")),
+    Img.new(class = "h-8").withAttr("src", getDataUri(scroll, "image/svg+xml")),
     H1.new(class = "text-lg font-black", textContent = "dogfen"),
   ]
   if cfg.live:
