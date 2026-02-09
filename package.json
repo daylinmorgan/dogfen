@@ -1,7 +1,7 @@
 {
   "name": "dogfen",
   "description": "self-rendering ~markdown~ html documents",
-  "version": "2026.1023.0",
+  "version": "2026.1024.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/daylinmorgan/dogfen.git"
