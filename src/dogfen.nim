@@ -13,6 +13,8 @@ type Config = object
   readOnly: bool
   lang: cstring
   code: cstring
+  editor: bool    ## if true editor is open to start
+  preview: bool   ## if true preview is open at start
   live: bool
 
 var cfg: Config
@@ -138,6 +140,10 @@ proc newMenuItem(text: cstring, onClick: proc(e: Event)): Element =
 proc divider: Element =
   Div.new().withClass("border b-1 border-solid")
 
+
+proc togglePreview() =
+  document.getElementById("preview").classList.toggle("hidden")
+
 proc menuList: Element =
   # NOTE: Does this even need to be a list?
   var list =
@@ -145,7 +151,7 @@ proc menuList: Element =
       class "list-none flex flex-col min-w-60 pl-0"
       children(
         newMenuItem("toggle editor", (_: Event) => toggleEditor()),
-        newMenuItem("toggle preview", (_: Event) => (document.getElementById("preview").classList.toggle("hidden"))),
+        newMenuItem("toggle preview", (_: Event) => togglePreview()),
         divider(),
         newMenuItem("save document", proc(e: Event) =
           e.currentTarget.Element.setHtmlTimeout("saving")
@@ -233,19 +239,26 @@ proc errorFromUri(uri: string, e: Error): cstring =
 proc initFromUri(_: typedesc[Config]): Config =
   let uri = parseUri($window.location.href)
   for k, v in uri.query.decodeQuery():
-    if k == "href":
+    case k
+    of "href":
       result.href = v
-    elif k == "raw":
+    of "raw":
       # TODO: return an "error" display like with errorFromUri if this doesn't work as expected..
       result.raw = decompressFromEncodedURIComponent(uri.anchor.cstring)
       if result.raw.isNull:
         console.log "raw decrompression resulted in empty string"
-    elif k == "read-only":
+    of "read-only":
       result.readOnly = true
-    elif k == "lang":
+    of "lang":
       result.lang = v.cstring
-    elif k == "code":
+    of "code":
       result.code = v.cstring
+    of "editor":
+      result.editor = try: parseBool(v) except: false
+    of "preview":
+      result.preview = try: parseBool(v) except: true
+    else:
+      console.log "unknown query parameter -> k:", k.cstring,"v:", v.cstring
 
   if result.lang.isNull:
     result.lang = "en"
@@ -342,6 +355,7 @@ proc getStart(cfg: var Config): Future[cstring] {.async.} =
     textarea.remove()
 
   await initMarked(start)
+
 # proc handleKeyboardShortcut(e: Event) =
 #   let keyEvent = KeyboardEvent(e)
 #   if keyEvent.shiftKey and keyEvent.key == "E":
@@ -356,9 +370,27 @@ proc newFooter: Element =
         A.new(
           class="underline decoration-dotted",
           textContent = "dogfen"
-        ).withAttr("href", "https://dogfen.dayl.in>"),
+        ).withAttr("href", "https://dogfen.dayl.in"),
         Span.new(class="text-slate-400", textContent = "@" & version)
       )
+
+
+proc newOpenButtons: Element =
+  proc newButton: Element =
+    Button.new().with:
+      class "btn"
+
+  let editorButton = newButton().withText("open editor").withOnClick((e: Event) => toggleEditor())
+  let previewButton = newButton().withText("open preview").withOnClick((e: Event) => togglePreview())
+
+  result =
+    Div.new().with:
+      class "peer-not-[.hidden]/preview:hidden peer-not-[.hidden]/editor:hidden flex flex-row gap-5"
+
+  if not cfg.readOnly:
+    result = result.withChildren(editorButton)
+
+  result = result.withChildren(previewButton)
 
 proc setupDocument() {.async.} =
   newHtml = await marked.parse(newMd)
@@ -370,7 +402,7 @@ proc setupDocument() {.async.} =
   let editorDom =
     Div.new().with:
       id "editor"
-      class "max-w-95% lg:max-w-45% min-h-50 hidden py-1 border-1 border-dashed rounded lg:mx-0 z-0 w-90%"
+      class "peer/editor max-w-95% lg:max-w-45% min-h-50 hidden py-1 border-1 border-dashed rounded lg:mx-0 z-0 w-90%"
 
   let start = await cfg.getStart()
 
@@ -383,20 +415,26 @@ proc setupDocument() {.async.} =
       if isCodeMode(): newEditorViewCode(start, editorDom)
       else: newEditorView(start, editorDom)
 
+    if cfg.editor:
+      editorDom.classList.toggle("hidden")
+
   let preview =
     Div.new().with:
       id "preview"
       class(
         if isCodeMode(): "lg:max-w-90% max-w-98% shadow-lg rounded-md overflow-auto rounded".cstring
-        else: "lg:max-w-65ch max-w-98% p-2 border border-2 border-solid rounded-md shadow-lg w-65ch lg:min-h-50 lg:min-w-40% " & previewClasses
+        else: "peer/preview lg:max-w-65ch max-w-98% p-2 border border-2 border-solid rounded-md shadow-lg w-65ch lg:min-h-50 lg:min-w-40% " & previewClasses
       )
       attr "lang", cfg.lang
+
+  if cfg.preview:
+    preview.classList.toggle("hidden")
 
   let doc =
     Div.new().with:
       id "doc"
       class "h-full flex flex-col items-center lg:items-start lg:flex-row gap-5 mx-auto lg:justify-center w-full px-2"
-      children editorDom, preview
+      children editorDom, preview, newOpenButtons()
 
   if cfg.readOnly:
     doc.classList.toggle("mt-5")
