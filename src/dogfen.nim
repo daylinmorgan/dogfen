@@ -108,7 +108,9 @@ proc copyInputBoxToClipboard(e: Event) =
 const shareUrl = when defined(katex): "https://dogfen.dayl.in/katex" else: "https://dogfen.dayl.in"
 
 proc copyShareUrlToClipboard(e: Event) =
-  var uri = parseUri(shareUrl) ? {"raw": "true"}
+  var q = {"raw": ""}.toSeq()
+  if isCodeMode(): q &= {"code": $cfg.code}
+  var uri = parseUri(shareUrl) ? q
   uri.anchor = $compressToEncodedURIComponent(getCurrentDoc())
   discard navigator.clipboardWriteText(cstring($uri)).then(
     () => e.target.Element.setHtmlTimeout("copied!"),
@@ -119,7 +121,10 @@ proc copyShareUrlToClipboardReadOnly(e: Event) =
   let shareUrl =
     when defined(katex): "https://dogfen.dayl.in/katex/read-only"
     else: "https://dogfen.dayl.in/read-only"
-  var uri = parseUri(shareUrl) ? {"raw": "true", "read-only": ""}
+  var q = {"raw": "true", "read-only": ""}.toSeq()
+  if isCodeMode(): q &= {"code": $cfg.code}
+  var uri = parseUri(shareUrl) ? q
+
   uri.anchor = $compressToEncodedURIComponent(getCurrentDoc())
   discard navigator.clipboardWriteText(cstring($uri)).then(
     () => e.target.Element.setHtmlTimeout("copied!"),
