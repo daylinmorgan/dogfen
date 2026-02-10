@@ -1,5 +1,7 @@
 # dogfen
 
+self-rendering ~markdown~ html documents
+
 ## usage
 
 Add the below oneliner to an existing markdown document:
@@ -42,7 +44,7 @@ Use a query parameter to set the content with the raw text data fetched from a u
 
 Example: <https://dogfen.dayl.in/read-only?href=https://raw.githubusercontent.com/daylinmorgan/dogfen/refs/heads/main/README.md>
 
-> [!Note]
+> [!NOTE]
 > This base url (<https://dogfen.dayl.in/read-only>) loads a lighter bundle (without codemirror), you could also specifying this with a query parameter (`?read-only`)
 
 
