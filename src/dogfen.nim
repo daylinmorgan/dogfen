@@ -426,9 +426,9 @@ proc setupDocument() {.async.} =
   let preview =
     Div.new().with:
       id "preview"
-      class(
-        if isCodeMode(): "lg:max-w-90% max-w-98% shadow-lg rounded-md overflow-auto rounded".cstring
-        else: "peer/preview lg:max-w-65ch max-w-98% p-2 border border-2 border-solid rounded-md shadow-lg w-65ch lg:min-h-50 lg:min-w-40% " & previewClasses
+      class "peer/preview shadow-lg rounded-md max-w-98% " & (
+        if isCodeMode(): "lg:max-w-90% overflow-auto".cstring
+        else: "lg:max-w-65ch p-2 border border-2 border-solid w-65ch lg:min-h-50 " & previewClasses
       )
       attr "lang", cfg.lang
 
